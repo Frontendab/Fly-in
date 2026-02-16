@@ -10,8 +10,6 @@ FLAKE8 = ./$(VENV)/bin/flake8
 PROGRAM_NAME = fly-in
 CONFIG_FILE = config.txt
 
-PACKAGES_TO_INSTALL = mypy flake8
-
 PDB_COMMAND = $(PYTHON) -m pdb $(PROGRAM_NAME).py
 
 CLEAN_COMMAND = rm -rf $$(find . -name "__pycache__" -o -name ".mypy_cache") $(VENV)
@@ -23,7 +21,7 @@ LINT_COMMAND = $(FLAKE8) . --exclude $(VENV) & $(MYPY) . $(MYPY_FLAGS) --exclude
 
 CREATE_VENV = $(PYTHON) -m venv $(VENV)
 
-INSTALL_DEPS = $(PIP) install $(PACKAGES_TO_INSTALL)
+INSTALL_DEPS = $(PIP) install -r requirements.txt
 
 # ? Install a Python package using pip
 install:
