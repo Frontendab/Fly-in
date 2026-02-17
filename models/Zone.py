@@ -32,14 +32,15 @@ class ValidateZone(BaseModel):
         None, description="Color of the zone"
     ),
     current_drones: int = Field(
-        ge=0, description="To track the number of the current drones"
+        0, ge=0, description="To track the number of the current drones"
     )
 
 
 class Zone:
     def __init__(
         self, name: str, x: int, y: int, zone_type: ZoneTypes,
-        max_drones: int, color: Optional[str], current_drones: Optional[int]
+        max_drones: int, color: Optional[str] = None,
+        current_drones: Optional[int] = 0
     ) -> None:
         valid_zone = ValidateZone(
             name, x, y, zone_type, max_drones, color,

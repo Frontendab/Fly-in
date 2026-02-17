@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field
 from . import Zone
+from pydantic import BaseModel, Field
+from typing import Optional
 
 
 class ValidateConnection(BaseModel):
@@ -15,14 +16,14 @@ class ValidateConnection(BaseModel):
             connection simultaneously"
     ),
     current_flow: int = Field(
-        ge=0, description="To track the flow drones"
+        0, ge=0, description="To track the flow drones"
     )
 
 
 class Connection:
     def __init__(
         self, zone_a: Zone, zone_b: Zone, max_link_capacity: int,
-        current_flow: int
+        current_flow: Optional[int] = 0
     ) -> None:
         valid_connection = ValidateConnection(
             zone_a, zone_b, max_link_capacity,
