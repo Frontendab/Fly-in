@@ -1,4 +1,7 @@
+from viz import start_display
 
 
 if __name__ == "__main__":
     print("Hello world, I am Fly-in :)")
+
+    start_display()

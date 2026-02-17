@@ -1,5 +1,5 @@
 # ? requirements.txt
-
 mypy==1.19.1
 flake8==7.3.0
 pydantic==2.12.5
+pygame==2.6.1
