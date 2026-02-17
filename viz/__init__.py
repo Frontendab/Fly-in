@@ -1,5 +1,5 @@
-from .display import start_display
+from .visualization import start_visualization
 
 __all__ = [
-    "start_display"
+    "start_visualization"
 ]

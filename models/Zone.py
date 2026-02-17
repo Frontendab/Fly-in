@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Optional
 
 
-class ZoneTypes(Enum):
+class ZoneTypes(str, Enum):
     NORMAL = "normal"
     BLOCKED = "blocked"
     RESTRICTED = "restricted"
@@ -13,24 +13,24 @@ class ZoneTypes(Enum):
 class ValidateZone(BaseModel):
     name: str = Field(
         description="Name of the zone"
-    ),
+    )
     x: int = Field(
         ge=0, description="X of zone's coordinate"
-    ),
+    )
     y: int = Field(
         ge=0, description="Y of zone's coordinate"
-    ),
-    zone_type: ZoneTypes = Field(
-        ZoneTypes.NORMAL.value,
+    )
+    zone_type: str = Field(
+        ZoneTypes.NORMAL,
         description="Type of the zone, default normal"
-    ),
+    )
+    color: str = Field(
+        None, description="Color of the zone"
+    )
     max_drones: int = Field(
         1, ge=0,
         description="Maximum drones that can occupy this zone simultaneously"
-    ),
-    color: str = Field(
-        None, description="Color of the zone"
-    ),
+    )
     current_drones: int = Field(
         0, ge=0, description="To track the number of the current drones"
     )
@@ -38,13 +38,14 @@ class ValidateZone(BaseModel):
 
 class Zone:
     def __init__(
-        self, name: str, x: int, y: int, zone_type: ZoneTypes,
-        max_drones: int, color: Optional[str] = None,
+        self, name: str, x: int, y: int,
+        zone_type: Optional[ZoneTypes] = ZoneTypes.NORMAL,
+        max_drones: Optional[int] = 0, color: Optional[str] = "",
         current_drones: Optional[int] = 0
     ) -> None:
         valid_zone = ValidateZone(
-            name, x, y, zone_type, max_drones, color,
-            current_drones
+            name=name, x=x, y=y, zone_type=zone_type, max_drones=max_drones,
+            color=color, current_drones=current_drones
         )
         self.name: str = valid_zone.name
         self.x: int = valid_zone.x

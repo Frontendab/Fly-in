@@ -1,10 +1,10 @@
 import pygame
 
 
-def start_display():
+def start_visualization():
     pygame.init()
 
-    pygame.display.set_mode((1000, 1000))
+    pygame.display.set_mode((200, 200))
     pygame.display.set_caption("Fly-in")
 
     running = True
