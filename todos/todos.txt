@@ -1,6 +1,6 @@
 ==============================================
 ==============================================
-TODO 1): I have to complete initialize models and 
-test it with their values
+TODO 1): I have to complete test classes with
+their values
 ==============================================
 ==============================================
