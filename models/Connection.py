@@ -1,5 +1,8 @@
 from .Zone import Zone
-from pydantic import BaseModel, Field, ConfigDict
+from typing import Optional
+from pydantic import (
+    BaseModel, Field, ConfigDict
+)
 
 
 class ValidateConnection(BaseModel):
@@ -15,17 +18,21 @@ class ValidateConnection(BaseModel):
         description="Maximum drones that can traverse this \
             connection simultaneously"
     )
-    current_flow: int = Field(
-        0, ge=0, description="To track the flow drones"
-    )
+    # current_flow: int = Field(
+    #     0, ge=0, description="To track the flow drones"
+    # )
 
 
 class Connection:
     def __init__(
-        self, zone_a: Zone, zone_b: Zone, max_link_capacity: int,
-        current_flow: int
+        self, zone_a: Zone, zone_b: Zone,
+        max_link_capacity: Optional[int] = 0,
+        current_flow: Optional[int] = 0
     ) -> None:
         self.zone_a: Zone = zone_a
         self.zone_b: Zone = zone_b
         self.max_link_capacity: int = max_link_capacity
-        self.current_flow: int = current_flow
+        self.current_flow: int = 0
+
+    def initialize_connect(self) -> None:
+        self.zone_a.target_zone = self.zone_b

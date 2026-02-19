@@ -1,6 +1,10 @@
-from pydantic import BaseModel, Field
+from pydantic import (
+    BaseModel, Field, field_validator
+)
+from pydantic_core import PydanticCustomError
 from enum import Enum
-from typing import Optional
+from typing import Optional, Union
+from pygame.colordict import THECOLORS
 
 
 class ZoneTypes(str, Enum):
@@ -12,7 +16,7 @@ class ZoneTypes(str, Enum):
 
 class ValidateZone(BaseModel):
     name: str = Field(
-        description="Name of the zone"
+        min_length=4, description="Name of the zone"
     )
     x: int = Field(
         ge=0, description="X of zone's coordinate"
@@ -24,8 +28,8 @@ class ValidateZone(BaseModel):
         ZoneTypes.NORMAL,
         description="Type of the zone, default normal"
     )
-    color: str = Field(
-        None, description="Color of the zone"
+    color: Union[str, tuple] = Field(
+        None, min_length=3, description="Color of the zone"
     )
     max_drones: int = Field(
         1, ge=0,
@@ -34,6 +38,21 @@ class ValidateZone(BaseModel):
     current_drones: int = Field(
         0, ge=0, description="To track the number of the current drones"
     )
+
+    @field_validator('color', mode="after")
+    def initialize_color(color: str) -> object:
+        if isinstance(color, tuple):
+            return color
+        color_tuple: tuple | None = THECOLORS.get(color.lower())
+        if not color_tuple:
+            raise PydanticCustomError(
+                "invalid_color",
+                (
+                    "Invalid color name." +
+                    "See: https://www.pygame.org/docs/ref/color_list.html"
+                )
+            )
+        return color_tuple
 
 
 class Zone:
@@ -54,3 +73,4 @@ class Zone:
         self.max_drones: int = valid_zone.max_drones
         self.color: str = valid_zone.color
         self.current_drones: int = valid_zone.current_drones
+        self.target_zone: Zone = None

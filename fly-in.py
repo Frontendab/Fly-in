@@ -1,5 +1,6 @@
 from viz import start_visualization
-from models import Graph
+from models import Graph, PydanticError
+from pydantic import ValidationError
 
 
 if __name__ == "__main__":
@@ -7,10 +8,26 @@ if __name__ == "__main__":
 
     graph = Graph()
 
-    graph.create_zone(
-        name="start", x=0, y=0, color="green",
-    )
+    try:
+        zone = graph.create_zone(
+            name="start", x=0, y=0, color="green",
+        )
 
-    print(graph.zones)
+        graph.create_zone(
+            name="waypoint1", x=1, y=0, color="blue",
+        )
+
+        graph.create_zone(
+            name="waypoint2", x=2, y=0, color="blue",
+        )
+
+        graph.create_zone(
+            name="goal", x=3, y=0, color="red",
+        )
+
+    except ValidationError as e:
+        error = PydanticError(e.errors())
+        format_errors = error.format_errors()
+        error.display_errors(format_errors)
 
     start_visualization()

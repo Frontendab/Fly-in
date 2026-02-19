@@ -1,5 +1,5 @@
-from .Zone import Zone, ZoneTypes
-from .Connection import Connection
+from .Zone import Zone, ZoneTypes, ValidateZone
+from .Connection import Connection, ValidateConnection
 from typing import Dict, List, Optional
 
 
@@ -20,19 +20,27 @@ class Graph:
         max_drones: Optional[int] = 0, color: Optional[str] = "",
         current_drones: Optional[int] = 0
     ) -> Zone:
+        valid_zone = ValidateZone(
+            name=name, x=x, y=y, zone_type=zone_type, max_drones=max_drones,
+            color=color, current_drones=current_drones
+        )
         zone = Zone(
-            name, x, y, zone_type, max_drones, color,
-            current_drones
+            valid_zone.name, valid_zone.x, valid_zone.y, valid_zone.zone_type,
+            valid_zone.max_drones, valid_zone.color,
+            valid_zone.current_drones
         )
         self.zones[name] = zone
         return zone
 
     def create_connection(
-        self, zone_a: Zone, zone_b: Zone, max_link_capacity: int,
-        current_flow: Optional[int] = 0
+        self, zone_a: Zone, zone_b: Zone, max_link_capacity: Optional[int] = 0,
     ) -> Connection:
-        connection = Connection(
-            zone_a, zone_b, max_link_capacity, current_flow
+        valid_connection = ValidateConnection(
+            zone_a=zone_a, zone_b=zone_b, max_link_capacity=max_link_capacity,
         )
-        self.connections[f"{zone_a.name}-{zone_b.name}"].append(connection)
+        connection = Connection(
+            valid_connection.zone_a, valid_connection.zone_b,
+            valid_connection.max_link_capacity
+        )
+        self.connections[f"{zone_a.name}-{zone_b.name}"] = connection
         return connection
