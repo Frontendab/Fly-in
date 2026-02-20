@@ -24,7 +24,7 @@ class ValidateZone(BaseModel):
     y: int = Field(
         ge=0, description="Y of zone's coordinate"
     )
-    zone_type: str = Field(
+    zone_type: ZoneTypes = Field(
         ZoneTypes.NORMAL,
         description="Type of the zone, default normal"
     )

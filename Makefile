@@ -7,8 +7,9 @@ PIP = ./$(VENV)/bin/pip
 MYPY = ./$(VENV)/bin/mypy
 FLAKE8 = ./$(VENV)/bin/flake8
 
+FILE_NAME_MAP = maps/easy/01_linear_path.txt
+
 PROGRAM_NAME = fly-in
-CONFIG_FILE = config.txt
 
 PDB_COMMAND = $(PYTHON) -m pdb $(PROGRAM_NAME).py
 
@@ -32,7 +33,7 @@ install:
 
 # ? Run the program
 run:
-	@$(PYTHON) $(PROGRAM_NAME).py $(CONFIG_FILE)
+	@$(PYTHON) $(PROGRAM_NAME).py $(FILE_NAME_MAP)
 
 # ? Debug the program
 debug:
