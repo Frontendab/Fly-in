@@ -161,7 +161,7 @@ class FileParser:
                                     )
                                 metadata_dict[key] = value
 
-                        if self.is_exist_metadata_key(metadata_items):
+                        if self.is_duplicate_metadata_key(metadata_items):
                             display_errors_msg(
                                 f"Line {num}: Duplicate metadata key!"
                             )
@@ -173,7 +173,7 @@ class FileParser:
                             "y": int(y),
                             "metadata": metadata_dict
                         })
-                        msg = self.is_exist_zone(hub)
+                        msg = self.is_duplicate_zone(hub)
                         if msg:
                             display_errors_msg(
                                 f"Line {num}: {msg}"
@@ -186,7 +186,7 @@ class FileParser:
                             "y": int(y),
                             "metadata": metadata_dict
                         })
-                        msg = self.is_exist_zone(hub)
+                        msg = self.is_duplicate_zone(hub)
                         if msg:
                             display_errors_msg(
                                 f"Line {num}: {msg}"
@@ -199,7 +199,7 @@ class FileParser:
                             "y": int(y),
                             "metadata": metadata_dict
                         })
-                        msg = self.is_exist_zone(hub)
+                        msg = self.is_duplicate_zone(hub)
                         if msg:
                             display_errors_msg(
                                 f"Line {num}: {msg}"
@@ -211,7 +211,7 @@ class FileParser:
                             "name_b": name_b,
                             "metadata": metadata_dict
                         })
-                        msg = self.is_exist_connection(connection)
+                        msg = self.is_duplicate_connection(connection)
                         if msg:
                             display_errors_msg(
                                 f"Line {num}: {msg}"
@@ -231,7 +231,7 @@ class FileParser:
             "connections": self.connections
         }
 
-    def is_exist_zone(self, hub: Dict[str, Any]) -> bool | str:
+    def is_duplicate_zone(self, hub: Dict[str, Any]) -> bool | str:
 
         if self.start_zone:
             if self.start_zone.get("name") == hub.get("name"):
@@ -266,7 +266,7 @@ class FileParser:
                 )
         return False
 
-    def is_exist_metadata_key(self, metadata: List[str]) -> bool:
+    def is_duplicate_metadata_key(self, metadata: List[str]) -> bool:
         pre_key, _ = metadata[0].split("=", 1)
         for item in metadata[1:]:
             if item:
@@ -277,7 +277,9 @@ class FileParser:
 
         return False
 
-    def is_exist_connection(self, connection: Dict[str, Any]) -> bool | str:
+    def is_duplicate_connection(
+        self, connection: Dict[str, Any]
+    ) -> bool | str:
 
         for conn in self.connections:
             if (conn.get("name_a") == connection.get("name_a")
@@ -289,18 +291,18 @@ class FileParser:
                     f"\"{connection.get('name_b')}\" connection!"
                 )
 
-            elif not self.is_zone(connection.get("name_a")):
+            elif not self.is_exist_zone(connection.get("name_a")):
                 return (
                     f"\"{connection.get('name_a')}\" does not exist!"
                 )
-            elif not self.is_zone(connection.get("name_b")):
+            elif not self.is_exist_zone(connection.get("name_b")):
                 return (
                     f"\"{connection.get('name_b')}\" does not exist!"
                 )
 
         return False
 
-    def is_zone(self, name: str) -> bool:
+    def is_exist_zone(self, name: str) -> bool:
         if self.start_zone.get("name") == name:
             return True
         elif self.end_zone.get("name") == name:
