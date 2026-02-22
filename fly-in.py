@@ -19,8 +19,6 @@ if __name__ == "__main__":
     file_parser = FileParser(file_name)
 
     data = file_parser.parse()
-    if data:
-        for item in data.values():
-            print(item)
+    print(data)
 
     start_visualization()

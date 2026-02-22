@@ -12,10 +12,15 @@ class FileParser:
         self.hubs: List[Dict[str, Any]] = []
         self.connections: List[Dict[str, Any]] = []
         self.__metadata_zones = ("color", "zone", "max_drones")
+        self.__metadata_connection = ("max_link_capacity")
 
     def parse(self) -> Dict[str, Any]:
         finding = {
-            "nb_drones": False,
+            "nb_drones": 0,
+            "start_hub": 0,
+            "hubs": 0,
+            "end_hub": 0,
+            "connections": 0
         }
         with open(self.file_name, "r") as file:
             lines = file.readlines()
@@ -26,6 +31,9 @@ class FileParser:
                 )
 
             for num, line in enumerate(lines, start=1):
+                connection = {}
+                hub = {}
+                metadata_dict = {}
                 line = line[:-1]
 
                 if line.startswith("#"):
@@ -36,6 +44,11 @@ class FileParser:
 
                 if "nb_drones" in line:
                     is_match = match(r"^nb_drones: [0-9]+$", line)
+                    finding["nb_drones"] += 1
+                    if finding.get("nb_drones") > 1:
+                        display_errors_msg(
+                            f"Line {num}: Duplicate nb_drones!"
+                        )
                     if not is_match:
                         display_errors_msg(
                             f"Line {num}: Invalid File Format\n"
@@ -43,10 +56,9 @@ class FileParser:
                             " pattern:\n-> nb_drones: <number>\n"
                             "Please check your input file and try again."
                         )
-                    finding["nb_drones"] = True
                     nb_drones = line.split(" ", 1)[1]
                     self.nb_drones = int(nb_drones)
-                elif not finding.get("nb_drones", False):
+                elif finding.get("nb_drones", 0) == 0:
                     display_errors_msg(
                         f"Line {num}: Drones number must be defined in " +
                         "the first line\n-> nb_drones: <number>"
@@ -55,30 +67,45 @@ class FileParser:
                 if ("hub" in line or "start_hub" in line or "end_hub" in line
                         or "connection" in line):
 
-                    type_hub = "hub"
-                    is_match = match(
-                        r"^hub: (\w+) (\d+) (\d+)(?:\s+(.*))?",
-                        line
-                    )
+                    type_hub = ""
+                    is_match = None
                     if "start_hub" in line:
                         is_match = match(
                             r"^start_hub: (\w+) (\d+) (\d+)(?:\s+(.*))?",
                             line
                         )
                         type_hub = "start_hub"
+                        finding["start_hub"] += 1
                     elif "end_hub" in line:
                         is_match = match(
                             r"^end_hub: (\w+) (\d+) (\d+)(?:\s+(.*))?",
                             line
                         )
                         type_hub = "end_hub"
-
+                        finding["end_hub"] += 1
                     elif "connection" in line:
                         is_match = match(
                             r"^connection: (\w+)-(\w+)(?:\s+(.*))?",
                             line
                         )
                         type_hub = "connection"
+                        finding["connections"] += 1
+                    else:
+                        type_hub = "hub"
+                        is_match = match(
+                            r"^hub: (\w+) (\d+) (\d+)(?:\s+(.*))?",
+                            line
+                        )
+                        finding["hubs"] += 1
+
+                    if finding.get("start_hub") > 1:
+                        display_errors_msg(
+                            f"Line {num}: Duplicate start hub!"
+                        )
+                    elif finding.get("end_hub") > 1:
+                        display_errors_msg(
+                            f"Line {num}: Duplicate end hub!"
+                        )
 
                     if not is_match:
                         display_errors_msg(
@@ -90,11 +117,9 @@ class FileParser:
                         )
 
                     if type_hub != "connection":
-                        _, _, _, metadata = is_match.groups()
+                        name, x, y, metadata = is_match.groups()
                     elif type_hub == "connection":
                         name_a, name_b, metadata = is_match.groups()
-
-                    # TODO: I have to append the hubs and connections to self
 
                     if metadata:
                         is_format_metadata = match(
@@ -119,38 +144,79 @@ class FileParser:
                                         " metadata format!"
                                     )
                                 key, value = meta.split("=", 1)
-                                if key not in self.__metadata_zones:
+                                if (type_hub != "connection"
+                                        and key not in self.__metadata_zones):
                                     display_errors_msg(
                                         f"Line {num}: Invalid zones's" +
                                         " metadata, " +
                                         f"expected: {self.__metadata_zones}!"
                                     )
+                                elif (type_hub == "connection" and
+                                        key not in self.__metadata_connection):
+                                    display_errors_msg(
+                                        f"Line {num}: Invalid connection's"
+                                        " metadata, " +
+                                        "expected: " +
+                                        f"{self.__metadata_connection}!"
+                                    )
+                                metadata_dict[key] = value
 
-                        if "start_hub" in line:
-                            self.start_zone.update({
-                                "metadata": metadata_items
-                            })
-                        elif "end_hub" in line:
-                            self.end_zone.update({
-                                "metadata": metadata_items
-                            })
+                        if self.is_exist_metadata_key(metadata_items):
+                            display_errors_msg(
+                                f"Line {num}: Duplicate metadata key!"
+                            )
 
                     if "start_hub" in line:
-                        name, x, y, _ = is_match.groups()
-                        self.start_zone.update({
+                        hub.update({
                             "name": name,
                             "x": int(x),
                             "y": int(y),
+                            "metadata": metadata_dict
                         })
+                        msg = self.is_exist_zone(hub)
+                        if msg:
+                            display_errors_msg(
+                                f"Line {num}: {msg}"
+                            )
+                        self.start_zone = hub
                     elif "end_hub" in line:
-                        name, x, y, _ = is_match.groups()
-                        self.end_zone.update({
+                        hub.update({
                             "name": name,
                             "x": int(x),
                             "y": int(y),
+                            "metadata": metadata_dict
                         })
+                        msg = self.is_exist_zone(hub)
+                        if msg:
+                            display_errors_msg(
+                                f"Line {num}: {msg}"
+                            )
+                        self.end_zone = hub
+                    elif "hub" in line:
+                        hub.update({
+                            "name": name,
+                            "x": int(x),
+                            "y": int(y),
+                            "metadata": metadata_dict
+                        })
+                        msg = self.is_exist_zone(hub)
+                        if msg:
+                            display_errors_msg(
+                                f"Line {num}: {msg}"
+                            )
+                        self.hubs.append(hub)
                     elif "connection" in line:
-                        print(name_a, name_b, metadata)
+                        connection.update({
+                            "name_a": name_a,
+                            "name_b": name_b,
+                            "metadata": metadata_dict
+                        })
+                        msg = self.is_exist_connection(connection)
+                        if msg:
+                            display_errors_msg(
+                                f"Line {num}: {msg}"
+                            )
+                        self.connections.append(connection)
 
                 elif "nb_drones" not in line:
                     display_errors_msg(
@@ -164,3 +230,84 @@ class FileParser:
             "hubs": self.hubs,
             "connections": self.connections
         }
+
+    def is_exist_zone(self, hub: Dict[str, Any]) -> bool | str:
+
+        if self.start_zone:
+            if self.start_zone.get("name") == hub.get("name"):
+                return (
+                    f"Duplicate \"{hub.get('name')}\" name!"
+                )
+            elif (self.start_zone.get("x") == hub.get("x")
+                    and self.start_zone.get("y") == hub.get("y")):
+                return (
+                    f"Duplicate \"{hub.get('name')}\" with " +
+                    f"\"{self.start_zone.get('name')}\" coordinates!"
+                )
+        if self.end_zone:
+            if self.end_zone.get("name") == hub.get("name"):
+                return (
+                    f"Duplicate \"{hub.get('name')}\" name!"
+                )
+            elif (self.end_zone.get("x") == hub.get("x")
+                    and self.end_zone.get("y") == hub.get("y")):
+                return (
+                    f"Duplicate \"{hub.get('name')}\" with " +
+                    f"\"{self.end_zone.get('name')}\" coordinates!"
+                )
+        for zone in self.hubs:
+            if zone.get("name") == hub.get("name"):
+                return f"Duplicate \"{hub.get('name')}\" name!"
+            elif (zone.get("x") == hub.get("x")
+                    and zone.get("y") == hub.get("y")):
+                return (
+                    f"Duplicate \"{hub.get('name')}\" with " +
+                    f"\"{zone.get('name')}\" coordinates!"
+                )
+        return False
+
+    def is_exist_metadata_key(self, metadata: List[str]) -> bool:
+        pre_key, _ = metadata[0].split("=", 1)
+        for item in metadata[1:]:
+            if item:
+                key, _ = item.split("=", 1)
+                if pre_key == key:
+                    return True
+                pre_key = key
+
+        return False
+
+    def is_exist_connection(self, connection: Dict[str, Any]) -> bool | str:
+
+        for conn in self.connections:
+            if (conn.get("name_a") == connection.get("name_a")
+                    and conn.get("name_b") == connection.get("name_b")
+                    or conn.get("name_a") == connection.get("name_b")
+                    and conn.get("name_b") == connection.get("name_a")):
+                return (
+                    f"Duplicate \"{connection.get('name_a')}\" with " +
+                    f"\"{connection.get('name_b')}\" connection!"
+                )
+
+            elif not self.is_zone(connection.get("name_a")):
+                return (
+                    f"\"{connection.get('name_a')}\" does not exist!"
+                )
+            elif not self.is_zone(connection.get("name_b")):
+                return (
+                    f"\"{connection.get('name_b')}\" does not exist!"
+                )
+
+        return False
+
+    def is_zone(self, name: str) -> bool:
+        if self.start_zone.get("name") == name:
+            return True
+        elif self.end_zone.get("name") == name:
+            return True
+
+        for zone in self.hubs:
+            if zone.get("name") == name:
+                return True
+
+        return False
