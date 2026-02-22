@@ -20,6 +20,7 @@ if __name__ == "__main__":
 
     data = file_parser.parse()
     if data:
-        print(data)
+        for item in data.values():
+            print(item)
 
     start_visualization()
