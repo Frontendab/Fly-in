@@ -2,6 +2,7 @@ from viz import start_visualization
 from models import Graph, PydanticError, FileParser
 from pydantic import ValidationError
 import sys
+from utils import initialize_graph
 
 
 if __name__ == "__main__":
@@ -19,6 +20,11 @@ if __name__ == "__main__":
     file_parser = FileParser(file_name)
 
     data = file_parser.parse()
-    print(data)
+
+    graph = Graph()
+
+    initialize_graph(data, graph)
+
+    # TODO: I have to start draw the zones with edges in the pygame hh
 
     start_visualization()

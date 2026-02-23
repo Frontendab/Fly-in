@@ -7,7 +7,7 @@ from typing import Optional, Union
 from pygame.colordict import THECOLORS
 
 
-class ZoneTypes(str, Enum):
+class ZoneTypes(Enum):
     NORMAL = "normal"
     BLOCKED = "blocked"
     RESTRICTED = "restricted"
@@ -28,11 +28,11 @@ class ValidateZone(BaseModel):
         ZoneTypes.NORMAL,
         description="Type of the zone, default normal"
     )
-    color: Union[str, tuple] = Field(
+    color: Union[str, tuple, None] = Field(
         None, min_length=3, description="Color of the zone"
     )
     max_drones: int = Field(
-        1, ge=0,
+        1, ge=1,
         description="Maximum drones that can occupy this zone simultaneously"
     )
     current_drones: int = Field(
@@ -43,15 +43,18 @@ class ValidateZone(BaseModel):
     def initialize_color(color: str) -> object:
         if isinstance(color, tuple):
             return color
-        color_tuple: tuple | None = THECOLORS.get(color.lower())
-        if not color_tuple:
-            raise PydanticCustomError(
-                "invalid_color",
-                (
-                    "Invalid color name." +
-                    "See: https://www.pygame.org/docs/ref/color_list.html"
+
+        color_tuple: tuple | None = color
+        if color:
+            color_tuple = THECOLORS.get(color.lower())
+            if not color_tuple:
+                raise PydanticCustomError(
+                    "invalid_color",
+                    (
+                        "Invalid color name. " +
+                        "See: https://www.pygame.org/docs/ref/color_list.html"
+                    )
                 )
-            )
         return color_tuple
 
 
@@ -59,7 +62,7 @@ class Zone:
     def __init__(
         self, name: str, x: int, y: int,
         zone_type: Optional[ZoneTypes] = ZoneTypes.NORMAL,
-        max_drones: Optional[int] = 0, color: Optional[str] = "",
+        max_drones: Optional[int] = 1, color: Optional[str] = None,
         current_drones: Optional[int] = 0
     ) -> None:
         valid_zone = ValidateZone(
@@ -71,6 +74,6 @@ class Zone:
         self.y: int = valid_zone.y
         self.zone_type: ZoneTypes = valid_zone.zone_type
         self.max_drones: int = valid_zone.max_drones
-        self.color: str = valid_zone.color
+        self.color: Union[str, tuple, None] = valid_zone.color
         self.current_drones: int = valid_zone.current_drones
         self.target_zone: Zone = None

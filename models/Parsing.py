@@ -1,6 +1,14 @@
 from typing import List, Dict, Any
 from re import match
-from utils import display_errors_msg
+from enum import Enum
+
+
+class ConfigKeyTypes(Enum):
+    NB = "nb_drones"
+    START = "start_hub"
+    END = "end_hub"
+    HUBS = "hub"
+    CONN = "connection"
 
 
 class FileParser:
@@ -15,12 +23,14 @@ class FileParser:
         self.__metadata_connection = ("max_link_capacity")
 
     def parse(self) -> Dict[str, Any]:
+        from utils import display_errors_msg
+
         finding = {
-            "nb_drones": 0,
-            "start_hub": 0,
-            "hubs": 0,
-            "end_hub": 0,
-            "connections": 0
+            ConfigKeyTypes.NB.value: 0,
+            ConfigKeyTypes.START.value: 0,
+            ConfigKeyTypes.HUBS.value: 0,
+            ConfigKeyTypes.END.value: 0,
+            ConfigKeyTypes.CONN.value: 0
         }
         with open(self.file_name, "r") as file:
             lines = file.readlines()
@@ -42,12 +52,12 @@ class FileParser:
                 if not line.strip():
                     continue
 
-                if "nb_drones" in line:
+                if ConfigKeyTypes.NB.value in line:
                     is_match = match(r"^nb_drones: [0-9]+$", line)
-                    finding["nb_drones"] += 1
-                    if finding.get("nb_drones") > 1:
+                    finding[ConfigKeyTypes.NB.value] += 1
+                    if finding.get(ConfigKeyTypes.NB.value) > 1:
                         display_errors_msg(
-                            f"Line {num}: Duplicate nb_drones!"
+                            f"Line {num}: Duplicate {ConfigKeyTypes.NB.value}"
                         )
                     if not is_match:
                         display_errors_msg(
@@ -58,51 +68,54 @@ class FileParser:
                         )
                     nb_drones = line.split(" ", 1)[1]
                     self.nb_drones = int(nb_drones)
-                elif finding.get("nb_drones", 0) == 0:
+                elif finding.get(ConfigKeyTypes.NB.value, 0) == 0:
                     display_errors_msg(
                         f"Line {num}: Drones number must be defined in " +
-                        "the first line\n-> nb_drones: <number>"
+                        f"the first line\n-> {ConfigKeyTypes.NB.value}:" +
+                        " <number>"
                     )
 
-                if ("hub" in line or "start_hub" in line or "end_hub" in line
+                if (ConfigKeyTypes.HUBS.value in line
+                        or ConfigKeyTypes.START.value in line
+                        or ConfigKeyTypes.END.value in line
                         or "connection" in line):
 
                     type_hub = ""
                     is_match = None
-                    if "start_hub" in line:
+                    if ConfigKeyTypes.START.value in line:
                         is_match = match(
                             r"^start_hub: (\w+) (\d+) (\d+)(?:\s+(.*))?",
                             line
                         )
-                        type_hub = "start_hub"
-                        finding["start_hub"] += 1
-                    elif "end_hub" in line:
+                        type_hub = ConfigKeyTypes.START.value
+                        finding[ConfigKeyTypes.START.value] += 1
+                    elif ConfigKeyTypes.END.value in line:
                         is_match = match(
                             r"^end_hub: (\w+) (\d+) (\d+)(?:\s+(.*))?",
                             line
                         )
-                        type_hub = "end_hub"
-                        finding["end_hub"] += 1
-                    elif "connection" in line:
+                        type_hub = ConfigKeyTypes.END.value
+                        finding[ConfigKeyTypes.END.value] += 1
+                    elif ConfigKeyTypes.CONN.value in line:
                         is_match = match(
                             r"^connection: (\w+)-(\w+)(?:\s+(.*))?",
                             line
                         )
-                        type_hub = "connection"
-                        finding["connections"] += 1
+                        type_hub = ConfigKeyTypes.CONN.value
+                        finding[ConfigKeyTypes.CONN.value] += 1
                     else:
-                        type_hub = "hub"
                         is_match = match(
                             r"^hub: (\w+) (\d+) (\d+)(?:\s+(.*))?",
                             line
                         )
-                        finding["hubs"] += 1
+                        type_hub = ConfigKeyTypes.HUBS.value
+                        finding[ConfigKeyTypes.HUBS.value] += 1
 
-                    if finding.get("start_hub") > 1:
+                    if finding.get(ConfigKeyTypes.START.value) > 1:
                         display_errors_msg(
                             f"Line {num}: Duplicate start hub!"
                         )
-                    elif finding.get("end_hub") > 1:
+                    elif finding.get(ConfigKeyTypes.END.value) > 1:
                         display_errors_msg(
                             f"Line {num}: Duplicate end hub!"
                         )
@@ -116,9 +129,9 @@ class FileParser:
                             "input file and try again."
                         )
 
-                    if type_hub != "connection":
+                    if type_hub != ConfigKeyTypes.CONN.value:
                         name, x, y, metadata = is_match.groups()
-                    elif type_hub == "connection":
+                    elif type_hub == ConfigKeyTypes.CONN.value:
                         name_a, name_b, metadata = is_match.groups()
 
                     if metadata:
@@ -144,14 +157,15 @@ class FileParser:
                                         " metadata format!"
                                     )
                                 key, value = meta.split("=", 1)
-                                if (type_hub != "connection"
+                                if (type_hub != ConfigKeyTypes.CONN.value
                                         and key not in self.__metadata_zones):
                                     display_errors_msg(
                                         f"Line {num}: Invalid zones's" +
                                         " metadata, " +
                                         f"expected: {self.__metadata_zones}!"
                                     )
-                                elif (type_hub == "connection" and
+                                elif (type_hub == ConfigKeyTypes.CONN.value
+                                        and
                                         key not in self.__metadata_connection):
                                     display_errors_msg(
                                         f"Line {num}: Invalid connection's"
@@ -166,7 +180,7 @@ class FileParser:
                                 f"Line {num}: Duplicate metadata key!"
                             )
 
-                    if "start_hub" in line:
+                    if ConfigKeyTypes.START.value in line:
                         hub.update({
                             "name": name,
                             "x": int(x),
@@ -179,7 +193,7 @@ class FileParser:
                                 f"Line {num}: {msg}"
                             )
                         self.start_zone = hub
-                    elif "end_hub" in line:
+                    elif ConfigKeyTypes.END.value in line:
                         hub.update({
                             "name": name,
                             "x": int(x),
@@ -192,7 +206,7 @@ class FileParser:
                                 f"Line {num}: {msg}"
                             )
                         self.end_zone = hub
-                    elif "hub" in line:
+                    elif ConfigKeyTypes.HUBS.value in line:
                         hub.update({
                             "name": name,
                             "x": int(x),
@@ -205,7 +219,7 @@ class FileParser:
                                 f"Line {num}: {msg}"
                             )
                         self.hubs.append(hub)
-                    elif "connection" in line:
+                    elif ConfigKeyTypes.CONN.value in line:
                         connection.update({
                             "name_a": name_a,
                             "name_b": name_b,
@@ -218,17 +232,17 @@ class FileParser:
                             )
                         self.connections.append(connection)
 
-                elif "nb_drones" not in line:
+                elif ConfigKeyTypes.NB.value not in line:
                     display_errors_msg(
                         f"Line {num}: Unsupported line: {line}"
                     )
 
         return {
-            "nb_drones": self.nb_drones,
-            "start_zone": self.start_zone,
-            "end_zone": self.end_zone,
-            "hubs": self.hubs,
-            "connections": self.connections
+            ConfigKeyTypes.NB.value: self.nb_drones,
+            ConfigKeyTypes.START.value: self.start_zone,
+            ConfigKeyTypes.END.value: self.end_zone,
+            ConfigKeyTypes.HUBS.value: self.hubs,
+            ConfigKeyTypes.CONN.value: self.connections
         }
 
     def is_duplicate_zone(self, hub: Dict[str, Any]) -> bool | str:

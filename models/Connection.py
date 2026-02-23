@@ -14,7 +14,7 @@ class ValidateConnection(BaseModel):
         description="Second zone to connect it with the first"
     )
     max_link_capacity: int = Field(
-        ge=0,
+        1, ge=1,
         description="Maximum drones that can traverse this \
             connection simultaneously"
     )
