@@ -26,8 +26,9 @@ INSTALL_DEPS = $(PIP) install -r requirements.txt
 
 # ? Install a Python package using pip
 install:
-	@echo "Installing dependencies..."
+	@echo "Create virtual environment..."
 	@$(CREATE_VENV)
+	@echo "Installing dependencies..."
 	@$(INSTALL_DEPS)
 	@echo "Dependencies installed successfully."
 
@@ -46,7 +47,7 @@ clean:
 
 # ? Lint the program
 lint:
-	$(LINT_COMMAND)
+	@$(LINT_COMMAND)
 
 # ? Lint strict the program
 lint-strict:
