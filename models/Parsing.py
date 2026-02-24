@@ -4,11 +4,11 @@ from enum import Enum
 
 
 class ConfigKeyTypes(Enum):
-    NB = "nb_drones"
-    START = "start_hub"
-    END = "end_hub"
-    HUBS = "hub"
-    CONN = "connection"
+    NB = "nb_drones:"
+    START = "start_hub:"
+    END = "end_hub:"
+    HUBS = "hub:"
+    CONN = "connection:"
 
 
 class FileParser:
@@ -216,7 +216,7 @@ class FileParser:
                         msg = self.is_duplicate_zone(hub)
                         if msg:
                             display_errors_msg(
-                                f"Line {num}: {msg}"
+                                f"==Line {num}: {msg}"
                             )
                         self.hubs.append(hub)
                     elif ConfigKeyTypes.CONN.value in line:

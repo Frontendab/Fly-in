@@ -17,8 +17,14 @@ class VisualizeSimulation:
         self.margin_x = (self.w_width - self.surface_width) // 2
         self.margin_y = (self.w_height - self.surface_height) // 2
         self.radius = 80
-        self.spacing = 250
-        self.hub_w_h = (75, 185)
+        self.spacing = 100
+        self.hub_w_h = (40, 100)
+        self.min_x = 0
+        self.min_y = 0
+        self.max_x = 0
+        self.max_y = 0
+        self.start_x = 0
+        self.start_y = 0
 
     def run(self, graph: Graph):
         pygame.display.set_caption("Fly-in")
@@ -32,6 +38,7 @@ class VisualizeSimulation:
         )
 
         self.__draw_zones(canvas, graph)
+        self.__draw_edges(canvas, graph)
 
         running = True
         while running:
@@ -65,6 +72,13 @@ class VisualizeSimulation:
 
         start_x = (self.surface_width - content_width) // 2
         start_y = (self.surface_height - content_height) // 2
+
+        self.min_x = min_x
+        self.min_y = min_y
+        self.max_x = max_x
+        self.max_y = max_y
+        self.start_x = start_x
+        self.start_y = start_y
 
         load_hub_image = pygame.image.load(self.image_path_hub)
 
@@ -107,3 +121,43 @@ class VisualizeSimulation:
             color_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT
         )
         return new_image
+
+    def __draw_edges(self, canvas: pygame.Surface, graph: Graph) -> None:
+        print("draw edges")
+
+        list_zones = {key: value for key, value in graph.zones.items()}
+        list_zones.update({
+            graph.start_zone.name: graph.start_zone,
+            graph.end_zone.name: graph.end_zone
+        })
+
+        for zone in list_zones.values():
+
+            if zone.target_zone:
+                for target in zone.target_zone:
+
+                    pygame.draw.line(
+                        canvas,
+                        THECOLORS.get("white"),
+                        self.get_render_coords(
+                            zone.x, zone.y, self.min_x, self.min_y,
+                            self.start_x, self.start_y
+                        ),
+                        self.get_render_coords(
+                            target.x, target.y, self.min_x, self.min_y,
+                            self.start_x, self.start_y
+                        ),
+                        2
+                    )
+
+    def get_render_coords(
+        self, x: int, y: int, min_x: int, min_y: int,
+        max_x: int, max_y: int
+    ) -> tuple:
+        render_x = (
+            ((x - min_x) * self.spacing + self.start_x) + (self.hub_w_h[0] // 2)
+        )
+        render_y = (
+            ((y - min_y) * self.spacing + self.start_y) + (self.hub_w_h[1] // 2)
+        )
+        return (render_x, render_y)
