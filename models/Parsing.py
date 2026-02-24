@@ -84,14 +84,14 @@ class FileParser:
                     is_match = None
                     if ConfigKeyTypes.START.value in line:
                         is_match = match(
-                            r"^start_hub: (\w+) (\d+) (\d+)(?:\s+(.*))?",
+                            r"^start_hub: (\w+) (-?\d+) (-?\d+)(?:\s+(.*))?",
                             line
                         )
                         type_hub = ConfigKeyTypes.START.value
                         finding[ConfigKeyTypes.START.value] += 1
                     elif ConfigKeyTypes.END.value in line:
                         is_match = match(
-                            r"^end_hub: (\w+) (\d+) (\d+)(?:\s+(.*))?",
+                            r"^end_hub: (\w+) (-?\d+) (-?\d+)(?:\s+(.*))?",
                             line
                         )
                         type_hub = ConfigKeyTypes.END.value
@@ -105,7 +105,7 @@ class FileParser:
                         finding[ConfigKeyTypes.CONN.value] += 1
                     else:
                         is_match = match(
-                            r"^hub: (\w+) (\d+) (\d+)(?:\s+(.*))?",
+                            r"^hub: (\w+) (-?\d+) (-?\d+)(?:\s+(.*))?",
                             line
                         )
                         type_hub = ConfigKeyTypes.HUBS.value
@@ -124,7 +124,7 @@ class FileParser:
                         display_errors_msg(
                             f"Line {num}: Invalid File Format\n"
                             "it must be following this pattern\n"
-                            f"-> {type_hub}: start 0 0 [color=green]\n"
+                            f"-> {type_hub}: <name> <number> <number> [color=green]\n"
                             "Metadata is optional, Please check your "
                             "input file and try again."
                         )

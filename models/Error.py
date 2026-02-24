@@ -1,5 +1,6 @@
 from typing import Dict, List, Any
 from abc import ABC, abstractmethod
+from sys import exit
 
 
 class Error(ABC):
@@ -42,3 +43,4 @@ class PydanticError(Error):
                 f"Field: {error.get("field")}, input: {error.get("input")}" +
                 f",  error: {error.get("msg")}"
             )
+        exit(1)

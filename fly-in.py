@@ -1,5 +1,6 @@
-from viz import start_visualization
+from viz import VisualizeSimulation
 from models import Graph, PydanticError, FileParser
+from utils import display_errors_msg
 from pydantic import ValidationError
 import sys
 from utils import initialize_graph
@@ -23,8 +24,15 @@ if __name__ == "__main__":
 
     graph = Graph()
 
-    initialize_graph(data, graph)
+    try:
+        initialize_graph(data, graph)
+    except ValidationError as e:
+        error = PydanticError(e.errors())
+        format_result = error.format_errors()
+        error.display_errors(format_result)
 
     # TODO: I have to start draw the zones with edges in the pygame hh
 
-    start_visualization()
+    visualize = VisualizeSimulation()
+    print(graph.zones)
+    visualize.run(graph)

@@ -1,5 +1,5 @@
-from .visualization import start_visualization
+from .visualization import VisualizeSimulation
 
 __all__ = [
-    "start_visualization"
+    "VisualizeSimulation"
 ]
