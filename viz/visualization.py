@@ -76,7 +76,9 @@ class VisualizeSimulation:
 
         for zone in list_zones.values():
 
-            a, b, c, d = zone.color
+            color = zone.color if zone.color else THECOLORS.get("white")
+
+            a, b, c, d = color
             new_a = int(a * 0.7 + 255 * 0.3)
             new_b = int(b * 0.7 + 255 * 0.3)
             new_c = int(c * 0.7 + 255 * 0.3)

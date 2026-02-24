@@ -76,4 +76,4 @@ class Zone:
         self.max_drones: int = valid_zone.max_drones
         self.color: Union[str, tuple, None] = valid_zone.color
         self.current_drones: int = valid_zone.current_drones
-        self.target_zone: Zone = None
+        self.target_zone: Zone = []

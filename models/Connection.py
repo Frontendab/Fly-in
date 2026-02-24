@@ -35,4 +35,4 @@ class Connection:
         self.current_flow: int = 0
 
     def initialize_connect(self) -> None:
-        self.zone_a.target_zone = self.zone_b
+        self.zone_a.target_zone.append(self.zone_b)

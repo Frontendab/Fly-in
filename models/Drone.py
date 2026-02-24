@@ -1,4 +1,5 @@
 from .Zone import Zone
+from typing import List
 from pydantic import BaseModel, Field,  ConfigDict
 
 
@@ -10,7 +11,7 @@ class ValidateDrone(BaseModel):
     current_zone: Zone = Field(
         description="Current zone of the drone"
     )
-    target_zone: Zone = Field(
+    target_zone: List[Zone] = Field(
         description="Target zone of the drone"
     )
     turns_until_arrival: int = Field(
