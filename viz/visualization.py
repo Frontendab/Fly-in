@@ -1,6 +1,6 @@
 import pygame
 from pygame.colordict import THECOLORS
-from models import Graph, Zone, ZoneTypes
+from models import Graph, Zone, ZoneTypes, Drone
 from typing import Dict
 
 
@@ -44,14 +44,20 @@ class VisualizeSimulation:
             ZoneTypes.BLOCKED.value: 0,
         }
         self.angle = 0
-        self.size_drone = (80, 80)
+        self.size_drone = (200, 100)
         self.clock = pygame.time.Clock()
+        self.space_drones: Dict[Drone, pygame.Surface] = {}
 
     def run(self, graph: Graph):
         pygame.display.set_caption("Fly-in")
         screen = pygame.display.set_mode((self.w_width, self.w_height))
 
+        self.drone_img = pygame.image.load(
+            self.image_path_drone
+        ).convert_alpha()
+
         load_original_bg = pygame.image.load(self.image_path).convert()
+
         canvas = pygame.transform.scale(
             load_original_bg, (self.w_width, self.w_height)
         )
@@ -63,6 +69,8 @@ class VisualizeSimulation:
 
         running = True
         while running:
+            pygame.time.delay(10)
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -72,6 +80,7 @@ class VisualizeSimulation:
             self.angle = (self.angle + 10) % 360
 
             self.__draw_drones(screen, graph)
+            self.__move_drone(screen, graph)
 
             pygame.display.update()
             self.clock.tick(60)
@@ -79,7 +88,6 @@ class VisualizeSimulation:
         pygame.quit()
 
     def __draw_edges(self, canvas: pygame.Surface, graph: Graph) -> None:
-        print("draw edges")
         spacing = self.spacing
 
         all_x = [zone.x for zone in graph.zones.values()]
@@ -192,17 +200,25 @@ class VisualizeSimulation:
             if hub_image:
                 canvas.blit(hub_image, (draw_x, draw_y))
 
-    def __draw_drones(self, canvas: pygame.Surface, graph: Graph) -> None:
-        load_drone = pygame.image.load(self.image_path_drone).convert_alpha()
+    def __draw_drones(
+        self, canvas: pygame.Surface, graph: Graph
+    ) -> None:
 
-        self.drone_img = load_drone
+        self.space_drones = {}
 
-        draw_x = (graph.start_zone.x - self.min_x) * self.spacing + (
-            self.start_x + 35)
-        draw_y = (graph.start_zone.y - self.min_y) * self.spacing + (
-            self.start_y + 85)
+        for drone in graph.drones.values():
+            draw_x = (drone.current_zone.x - self.min_x) * self.spacing + (
+                self.start_x + 35)
+            draw_y = (drone.current_zone.y - self.min_y) * self.spacing + (
+                self.start_y + 85)
 
-        self.__rotate_image(canvas, draw_x, draw_y)
+            rotate_drone = self.__rotate_image(canvas, draw_x, draw_y)
+            self.space_drones.update({
+                drone: rotate_drone
+            })
+
+    def get_drone(self, drone: Drone) -> pygame.Surface:
+        return self.space_drones.get(drone, None)
 
     def get_render_coords(
         self, x: int, y: int, min_x: int, min_y: int,
@@ -232,7 +248,7 @@ class VisualizeSimulation:
 
     def __rotate_image(
         self, canvas: pygame.Surface, draw_x: int, draw_y: int
-    ) -> None:
+    ) -> object:
 
         rotate_image = pygame.transform.rotate(
             self.drone_img,
@@ -242,3 +258,20 @@ class VisualizeSimulation:
         rect = rotate_image.get_rect(center=(draw_x, draw_y))
 
         canvas.blit(rotate_image, rect.topleft)
+        return rotate_image
+
+    def __move_drone(self, canvas: pygame.Surface, graph: Graph) -> None:
+        drone = graph.get_drone("D1")
+
+        surface = self.get_drone(drone)
+
+        draw_x = (drone.target_zone[0].x - self.min_x) * self.spacing + (
+            self.start_x + 35)
+        draw_y = (drone.target_zone[0].y - self.min_y) * self.spacing + (
+            self.start_y + 85)
+
+        rect = surface.get_rect(
+            center=(draw_x, draw_y)
+        )
+
+        canvas.blit(surface, rect.topleft)

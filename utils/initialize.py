@@ -58,3 +58,15 @@ def initialize_graph(data: Dict[str, Any], graph: Graph) -> None:
         graph.connections.update({
             key_format: new_conn
         })
+
+    nb_drones = data.get(ConfigKeyTypes.NB.value, 0)
+
+    for idx in range(1, nb_drones + 1):
+        drone = graph.create_drone(
+            idx,
+            graph.start_zone,
+            graph.start_zone.target_zone
+        )
+        graph.drones.update({
+            drone.id: drone
+        })
