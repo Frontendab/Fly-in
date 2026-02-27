@@ -50,14 +50,13 @@ class VisualizeSimulation:
     def run(self, graph: Graph):
         pygame.display.set_caption("Fly-in")
         screen = pygame.display.set_mode((self.w_width, self.w_height))
-        
-        # 1. تجهيز الصورة الأصلية
-        bg_original = pygame.image.load(self.image_path).convert()
-        bg_scaled = pygame.transform.scale(bg_original, (self.w_width, self.w_height))
 
-        # 2. إنشاء "الخريطة الثابتة" (التي لن تتغير)
-        # نرسم عليها المناطق والطرق مرة واحدة فقط قبل دخول الحلقة
-        base_canvas = bg_scaled.copy()
+        load_original_bg = pygame.image.load(self.image_path).convert()
+        canvas = pygame.transform.scale(
+            load_original_bg, (self.w_width, self.w_height)
+        )
+
+        base_canvas = canvas.copy()
         self.__draw_edges(base_canvas, graph)
         self.__draw_zones(base_canvas, graph)
         self.__draw_type_zone(base_canvas, graph)
@@ -68,18 +67,14 @@ class VisualizeSimulation:
                 if event.type == pygame.QUIT:
                     running = False
 
-            # 3. الرسم: أولاً نرسم الخريطة الثابتة لتغطية الإطار السابق
             screen.blit(base_canvas, (0, 0))
 
-            # 4. تحديث الزاوية (بشكل معقول)
             self.angle = (self.angle + 10) % 360
 
-            # 5. رسم العناصر المتحركة (Drones) مباشرة فوق الشاشة (Screen)
-            # بهذه الطريقة نحافظ على ثبات الخريطة تحت الـ Drone
             self.__draw_drones(screen, graph)
 
             pygame.display.update()
-            self.clock.tick(60) # ارفع السرعة ليكون الـ Animation سلساً
+            self.clock.tick(60)
 
         pygame.quit()
 
