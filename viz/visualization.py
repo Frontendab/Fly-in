@@ -18,19 +18,17 @@ class VisualizeSimulation:
         self.image_path_blocked = "assets/blocked.png"
         self.image_path_drone = "assets/drone.png"
         self.drone_img = ""
-        self.surface_width = self.w_width * 0.9
-        self.surface_height = self.w_height * 0.9
-        self.margin_x = (self.w_width - self.surface_width) // 2
-        self.margin_y = (self.w_height - self.surface_height) // 2
-        self.radius = 80
         self.spacing = 300
-        self.hub_w_h = (68, 175)
         self.min_x = 0
         self.min_y = 0
         self.max_x = 0
         self.max_y = 0
         self.start_x = 0
         self.start_y = 0
+        self.surface_width = self.w_width * 0.9
+        self.surface_height = self.w_height * 0.9
+        self.radius = 80
+        self.hub_w_h = (68, 175)
         self.list_zones: Dict[str, Zone] = {}
         self.line = {
             "color": THECOLORS.get("lightskyblue"),
@@ -69,7 +67,6 @@ class VisualizeSimulation:
 
         running = True
         while running:
-            pygame.time.delay(10)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -88,33 +85,6 @@ class VisualizeSimulation:
         pygame.quit()
 
     def __draw_edges(self, canvas: pygame.Surface, graph: Graph) -> None:
-        spacing = self.spacing
-
-        all_x = [zone.x for zone in graph.zones.values()]
-        all_y = [zone.y for zone in graph.zones.values()]
-
-        all_x += [graph.start_zone.x]
-        all_y += [graph.start_zone.y]
-
-        if not all_x:
-            return
-
-        min_x, max_x = min(all_x), max(all_x)
-        min_y, max_y = min(all_y), max(all_y)
-
-        content_width = (max_x - min_x) * spacing
-        content_height = (max_y - min_y) * spacing
-
-        start_x = (self.surface_width - content_width) // 2
-        start_y = (self.surface_height - content_height) // 2
-
-        self.min_x = min_x
-        self.min_y = min_y
-        self.max_x = max_x
-        self.max_y = max_y
-        self.start_x = start_x
-        self.start_y = start_y
-
         list_zones = {key: value for key, value in graph.zones.items()}
         list_zones.update({
             graph.start_zone.name: graph.start_zone,
@@ -194,8 +164,12 @@ class VisualizeSimulation:
                     self.size_type_zones
                 )
 
-            draw_x = (zone.x - self.min_x) * self.spacing + self.start_x + 10
-            draw_y = (zone.y - self.min_y) * self.spacing + self.start_y + 97
+            draw_x = (zone.x - self.min_x) * self.spacing + (
+                self.start_x + 10
+            )
+            draw_y = (zone.y - self.min_y) * self.spacing + (
+                self.start_y + 97
+            )
 
             if hub_image:
                 canvas.blit(hub_image, (draw_x, draw_y))
@@ -265,13 +239,60 @@ class VisualizeSimulation:
 
         surface = self.get_drone(drone)
 
-        draw_x = (drone.target_zone[0].x - self.min_x) * self.spacing + (
-            self.start_x + 35)
-        draw_y = (drone.target_zone[0].y - self.min_y) * self.spacing + (
-            self.start_y + 85)
+        current_pos = self.__get_pos(
+            drone.current_zone.x, drone.current_zone.y
+        )
+
+        target_pos = self.__get_pos(
+            drone.target_zone[0].x, drone.target_zone[0].y
+        )
+
+        drone.current_x = current_pos[0]
+
+        print(f"START: {current_pos}")
+        print(f"NEXT: {target_pos}")
+
+        print(drone.current_x, drone.current_y)
 
         rect = surface.get_rect(
-            center=(draw_x, draw_y)
+            center=(drone.current_x, drone.current_y)
         )
 
         canvas.blit(surface, rect.topleft)
+        drone.current_x += 3
+        drone.current_y = target_pos[1]
+
+    def __get_pos(self, x: int, y: int) -> tuple:
+        x_ = (x - self.min_x) * self.spacing + (
+            self.start_x + 35)
+        y_ = (y - self.min_y) * self.spacing + (
+            self.start_y + 85)
+        return (x_, y_)
+
+    def initialize_positions(self, graph: Graph) -> None:
+        spacing = self.spacing
+
+        all_x = [zone.x for zone in graph.zones.values()]
+        all_y = [zone.y for zone in graph.zones.values()]
+
+        all_x += [graph.start_zone.x]
+        all_y += [graph.start_zone.y]
+
+        if not all_x:
+            return
+
+        min_x, max_x = min(all_x), max(all_x)
+        min_y, max_y = min(all_y), max(all_y)
+
+        content_width = (max_x - min_x) * spacing
+        content_height = (max_y - min_y) * spacing
+
+        start_x = (self.surface_width - content_width) // 2
+        start_y = (self.surface_height - content_height) // 2
+
+        self.min_x = min_x
+        self.min_y = min_y
+        self.max_x = max_x
+        self.max_y = max_y
+        self.start_x = start_x
+        self.start_y = start_y

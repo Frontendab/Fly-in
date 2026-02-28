@@ -19,12 +19,6 @@ class ValidateDrone(BaseModel):
     target_zone: List[Zone] = Field(
         description="Target zone of the drone"
     )
-    turns_until_arrival: Optional[int] = Field(
-        0, ge=0, description="Turns until the drone arrives"
-    )
-    step_remaining: Optional[int] = Field(
-        0, ge=0, description="Remaining steps of the drone"
-    )
 
     @model_validator(mode="after")
     def check_valid_id(self) -> object:
@@ -42,12 +36,22 @@ class ValidateDrone(BaseModel):
 
 class Drone:
     def __init__(
-        self, id: str, current_zone: Zone, target_zone: Zone,
-        turns_until_arrival: Optional[int] = 0,
-        step_remaining: Optional[int] = 0
+        self, id: str, current_zone: Zone, target_zone: Zone
     ) -> None:
         self.id: str = id
         self.current_zone: Zone = current_zone
         self.target_zone: Zone = target_zone
-        self.turns_until_arrival: int = turns_until_arrival
-        self.step_remaining: int = step_remaining
+        self.current_x: int = current_zone.x
+        self.current_y: int = current_zone.y
+
+    def get_x(self, viz: object) -> None:
+        return (self.current_zone.x - viz.min_x) * viz.spacing + (
+            viz.start_x + 35)
+
+    def get_y(self, viz: object) -> None:
+        return (self.current_zone.y - viz.min_y) * viz.spacing + (
+            viz.start_y + 85)
+
+    def set_pos(self, x: int, y: int) -> None:
+        self.current_x = x
+        self.current_y = y
