@@ -66,16 +66,6 @@ class FileParser:
                         )
                     nb_drones = line.split(" ", 1)[1]
                     self.nb_drones = int(nb_drones)
-                elif finding.get(ConfigKeyTypes.NB.value, 0) > 1:
-                    display_errors_msg(
-                        f"Line {num}: Duplicate {ConfigKeyTypes.NB.value}"
-                    )
-                elif finding.get(ConfigKeyTypes.NB.value, 0) == 0:
-                    display_errors_msg(
-                        f"Line {num}: Drones number must be defined in " +
-                        f"the first line\n-> {ConfigKeyTypes.NB.value}" +
-                        " <number>"
-                    )
 
                 if (ConfigKeyTypes.HUBS.value in line
                         or ConfigKeyTypes.START.value in line
@@ -91,6 +81,11 @@ class FileParser:
                         )
                         type_hub = ConfigKeyTypes.START.value
                         finding[ConfigKeyTypes.START.value] += 1
+                        if finding.get(ConfigKeyTypes.START.value) > 1:
+                            display_errors_msg(
+                                f"Line {num}: Duplicate " +
+                                f"{ConfigKeyTypes.START.value}"
+                            )
                     elif ConfigKeyTypes.END.value in line:
                         is_match = match(
                             r"^end_hub: (\w+) (-?\d+) (-?\d+)(?:\s+(.*))?",
@@ -98,43 +93,30 @@ class FileParser:
                         )
                         type_hub = ConfigKeyTypes.END.value
                         finding[ConfigKeyTypes.END.value] += 1
+                        if finding.get(ConfigKeyTypes.END.value) > 1:
+                            display_errors_msg(
+                                f"Line {num}: Duplicate " +
+                                F"{ConfigKeyTypes.END.value}"
+                            )
                     elif ConfigKeyTypes.CONN.value in line:
                         is_match = match(
                             r"^connection: (\w+)-(\w+)(?:\s+(.*))?",
                             line
                         )
                         type_hub = ConfigKeyTypes.CONN.value
-                        finding[ConfigKeyTypes.CONN.value] += 1
                     else:
                         is_match = match(
                             r"^hub: (\w+) (-?\d+) (-?\d+)(?:\s+(.*))?",
                             line
                         )
                         type_hub = ConfigKeyTypes.HUBS.value
-                        finding[ConfigKeyTypes.HUBS.value] += 1
-
-                    if finding.get(ConfigKeyTypes.START.value) > 1:
-                        display_errors_msg(
-                            f"Line {num}: Duplicate start hub!"
-                        )
-                    elif finding.get(ConfigKeyTypes.START.value) == 0:
-                        display_errors_msg(
-                            f"Line {num}: Start hub doesn't exist!"
-                        )
-                    elif finding.get(ConfigKeyTypes.END.value) > 1:
-                        display_errors_msg(
-                            f"Line {num}: Duplicate end hub!"
-                        )
-                    elif finding.get(ConfigKeyTypes.END.value) == 0:
-                        display_errors_msg(
-                            f"Line {num}: End hub doesn't exist!"
-                        )
 
                     if not is_match:
                         display_errors_msg(
                             f"Line {num}: Invalid File Format\n"
                             "it must be following this pattern\n"
-                            f"-> {type_hub}: <name> <number> <number> [color=green]\n"
+                            f"-> {type_hub}: <name> <number> <number> " +
+                            "[color=green]\n"
                             "Metadata is optional, Please check your "
                             "input file and try again."
                         )
@@ -246,6 +228,21 @@ class FileParser:
                     display_errors_msg(
                         f"Line {num}: Unsupported line: {line}"
                     )
+
+            if finding.get(ConfigKeyTypes.NB.value, 0) == 0:
+                display_errors_msg(
+                    f"{ConfigKeyTypes.NB.value} doesn't exist!"
+                )
+
+            if finding.get(ConfigKeyTypes.START.value) == 0:
+                display_errors_msg(
+                    f"{ConfigKeyTypes.START.value} doesn't exist!"
+                )
+
+            if finding.get(ConfigKeyTypes.END.value) == 0:
+                display_errors_msg(
+                    f"{ConfigKeyTypes.END.value} doesn't exist!"
+                )
 
         return {
             ConfigKeyTypes.NB.value: self.nb_drones,
