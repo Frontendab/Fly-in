@@ -216,7 +216,7 @@ class FileParser:
                         msg = self.is_duplicate_zone(hub)
                         if msg:
                             display_errors_msg(
-                                f"==Line {num}: {msg}"
+                                f"Line {num}: {msg}"
                             )
                         self.hubs.append(hub)
                     elif ConfigKeyTypes.CONN.value in line:

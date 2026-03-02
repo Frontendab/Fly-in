@@ -15,7 +15,6 @@ hub: priority_bypass1 4 1 [zone=priority color=cyan max_drones=3]
 hub: priority_bypass2 5 1 [zone=priority color=cyan max_drones=3]
 hub: convergence 7 0 [color=yellow max_drones=6 zone=blocked]
 hub: final_bottleneck 8 0 [color=orange max_drones=3]
-hub: test 9 0 [color=orange max_drones=3]
 end_hub: goal 10 0 [color=purple max_drones=12]
 
 # Sequential gates (major bottleneck)
@@ -43,8 +42,7 @@ connection: priority_bypass2-convergence
 
 # Final challenge
 connection: convergence-final_bottleneck
-connection: final_bottleneck-test
-connection: test-goal
+connection: final_bottleneck-goal
 
 # Emergency overflow paths
 connection: waiting_area3-convergence

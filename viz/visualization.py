@@ -93,7 +93,7 @@ class VisualizeSimulation:
             self.angle = (self.angle + 10) % 360
 
             self.__draw_drones(screen, graph)
-            self.__move_drone(screen, graph)
+            # self.__move_drone(screen, graph)
 
             pygame.display.update()
             self.clock.tick(60)
@@ -292,37 +292,37 @@ class VisualizeSimulation:
         if screen_with < 3000:
 
             self.change_size_image(
-                NameImages.DRONE.value,
-                SizeImages.SMALL.value
+                NameImages.DRONE,
+                SizeImages.SMALL
             )
             self.change_size_image(
-                NameImages.HUB.value,
-                SizeImages.SMALL.value
+                NameImages.HUB,
+                SizeImages.SMALL
             )
             self.change_size_image(
-                NameImages.SPACING.value,
-                SizeImages.SMALL.value
+                NameImages.SPACING,
+                SizeImages.SMALL
             )
             self.change_size_image(
-                NameImages.ZONE_TYPES.value,
-                SizeImages.SMALL.value
+                NameImages.ZONE_TYPES,
+                SizeImages.SMALL
             )
         else:
             self.change_size_image(
-                NameImages.DRONE.value,
-                SizeImages.BIG.value
+                NameImages.DRONE,
+                SizeImages.BIG
             )
             self.change_size_image(
-                NameImages.HUB.value,
-                SizeImages.BIG.value
+                NameImages.HUB,
+                SizeImages.BIG
             )
             self.change_size_image(
-                NameImages.SPACING.value,
-                SizeImages.BIG.value
+                NameImages.SPACING,
+                SizeImages.BIG
             )
             self.change_size_image(
-                NameImages.ZONE_TYPES.value,
-                SizeImages.BIG.value
+                NameImages.ZONE_TYPES,
+                SizeImages.BIG
             )
 
         spacing = self.spacing
@@ -357,27 +357,27 @@ class VisualizeSimulation:
         )
 
     def change_size_image(self, name_image: str, size: str) -> None:
-        if name_image == NameImages.HUB.value:
-            if size == SizeImages.BIG.value:
+        if name_image == NameImages.HUB:
+            if size == SizeImages.BIG:
                 self.hub_w_h = (68, 175)
-            elif size == SizeImages.SMALL.value:
+            elif size == SizeImages.SMALL:
                 self.hub_w_h = (30, 80)
-        elif name_image == NameImages.DRONE.value:
-            if size == SizeImages.BIG.value:
+        elif name_image == NameImages.DRONE:
+            if size == SizeImages.BIG:
                 self.image_path_drone = "assets/drone_big.png"
                 self.plus_drone_types = (30, 82)
-            elif size == SizeImages.SMALL.value:
+            elif size == SizeImages.SMALL:
                 self.image_path_drone = "assets/drone.png"
                 self.plus_drone_types = (15, 40)
-        elif name_image == NameImages.SPACING.value:
-            if size == SizeImages.BIG.value:
+        elif name_image == NameImages.SPACING:
+            if size == SizeImages.BIG:
                 self.spacing = 250
-            elif size == SizeImages.SMALL.value:
+            elif size == SizeImages.SMALL:
                 self.spacing = 120
-        elif name_image == NameImages.ZONE_TYPES.value:
-            if size == SizeImages.BIG.value:
+        elif name_image == NameImages.ZONE_TYPES:
+            if size == SizeImages.BIG:
                 self.size_type_zones = (50, 50)
                 self.plus_zone_types = (10, 105)
-            elif size == SizeImages.SMALL.value:
+            elif size == SizeImages.SMALL:
                 self.size_type_zones = (25, 25)
                 self.plus_zone_types = (3, 48)

@@ -19,10 +19,10 @@ class ValidateZone(BaseModel):
         min_length=4, description="Name of the zone"
     )
     x: int = Field(
-        ge=0, description="X of zone's coordinate"
+        description="X of zone's coordinate"
     )
     y: int = Field(
-        ge=0, description="Y of zone's coordinate"
+        description="Y of zone's coordinate"
     )
     zone_type: ZoneTypes = Field(
         ZoneTypes.NORMAL,
