@@ -2,6 +2,19 @@ import pygame
 from pygame.colordict import THECOLORS
 from models import Graph, Zone, ZoneTypes, Drone
 from typing import Dict
+from enum import Enum
+
+
+class SizeImages(Enum):
+    BIG = "big"
+    SMALL = "small"
+
+
+class NameImages(Enum):
+    HUB = "hub"
+    DRONE = "drone"
+    SPACING = "spacing"
+    ZONE_TYPES = "zone_types"
 
 
 class VisualizeSimulation:
@@ -18,7 +31,6 @@ class VisualizeSimulation:
         self.image_path_blocked = "assets/blocked.png"
         self.image_path_drone = "assets/drone.png"
         self.drone_img = ""
-        self.spacing = 300
         self.min_x = 0
         self.min_y = 0
         self.max_x = 0
@@ -28,13 +40,14 @@ class VisualizeSimulation:
         self.surface_width = self.w_width * 0.9
         self.surface_height = self.w_height * 0.9
         self.radius = 80
-        self.hub_w_h = (68, 175)
+        self.spacing = 100
+        self.hub_w_h = (30, 80)
         self.list_zones: Dict[str, Zone] = {}
         self.line = {
             "color": THECOLORS.get("lightskyblue"),
             "border": 5
         }
-        self.size_type_zones = (50, 50)
+        self.size_type_zones = (25, 25)
         self.cost_zones = {
             ZoneTypes.NORMAL.value: 1,
             ZoneTypes.RESTRICTED.value: 2,
@@ -42,13 +55,16 @@ class VisualizeSimulation:
             ZoneTypes.BLOCKED.value: 0,
         }
         self.angle = 0
-        self.size_drone = (200, 100)
         self.clock = pygame.time.Clock()
         self.space_drones: Dict[Drone, pygame.Surface] = {}
+        self.plus_zone_types = (10, 105)
+        self.plus_drone_types = (15, 40)
 
     def run(self, graph: Graph):
         pygame.display.set_caption("Fly-in")
-        screen = pygame.display.set_mode((self.w_width, self.w_height))
+        screen = pygame.display.set_mode(
+            (self.w_width, self.w_height)
+        )
 
         self.drone_img = pygame.image.load(
             self.image_path_drone
@@ -134,10 +150,11 @@ class VisualizeSimulation:
                 self.hub_w_h
             )
 
-            draw_x = (zone.x - self.min_x) * self.spacing + self.start_x
-            draw_y = (zone.y - self.min_y) * self.spacing + self.start_y
+            current_pos = self.__get_pos(
+                zone.x, zone.y
+            )
 
-            canvas.blit(hub_image, (draw_x, draw_y))
+            canvas.blit(hub_image, current_pos)
 
     def __draw_type_zone(self, canvas: pygame.Surface, graph: Graph) -> None:
 
@@ -164,15 +181,16 @@ class VisualizeSimulation:
                     self.size_type_zones
                 )
 
-            draw_x = (zone.x - self.min_x) * self.spacing + (
-                self.start_x + 10
-            )
-            draw_y = (zone.y - self.min_y) * self.spacing + (
-                self.start_y + 97
+            current_pos = self.__get_pos(
+                zone.x, zone.y
             )
 
             if hub_image:
-                canvas.blit(hub_image, (draw_x, draw_y))
+                current_pos = (
+                    current_pos[0] + self.plus_zone_types[0],
+                    current_pos[1] + self.plus_zone_types[1]
+                )
+                canvas.blit(hub_image, current_pos)
 
     def __draw_drones(
         self, canvas: pygame.Surface, graph: Graph
@@ -181,12 +199,15 @@ class VisualizeSimulation:
         self.space_drones = {}
 
         for drone in graph.drones.values():
-            draw_x = (drone.current_zone.x - self.min_x) * self.spacing + (
-                self.start_x + 35)
-            draw_y = (drone.current_zone.y - self.min_y) * self.spacing + (
-                self.start_y + 85)
+            current_pos = self.__get_pos(
+                drone.current_zone.x, drone.current_zone.y
+            )
 
-            rotate_drone = self.__rotate_image(canvas, draw_x, draw_y)
+            rotate_drone = self.__rotate_image(
+                canvas, current_pos[0] + self.plus_drone_types[0],
+                current_pos[1] + self.plus_drone_types[1]
+            )
+
             self.space_drones.update({
                 drone: rotate_drone
             })
@@ -239,37 +260,31 @@ class VisualizeSimulation:
 
         surface = self.get_drone(drone)
 
-        current_pos = self.__get_pos(
-            drone.current_zone.x, drone.current_zone.y
-        )
-
         target_pos = self.__get_pos(
             drone.target_zone[0].x, drone.target_zone[0].y
         )
 
-        drone.current_x = current_pos[0]
-
-        print(f"START: {current_pos}")
-        print(f"NEXT: {target_pos}")
-
-        print(drone.current_x, drone.current_y)
-
         rect = surface.get_rect(
-            center=(drone.current_x, drone.current_y)
+            center=(
+                drone.current_x + self.plus_drone_types[0],
+                drone.current_y + self.plus_drone_types[1]
+            )
         )
 
         canvas.blit(surface, rect.topleft)
-        drone.current_x += 3
+        if drone.current_x >= target_pos[0]:
+            return
+        drone.current_x += 2
         drone.current_y = target_pos[1]
 
     def __get_pos(self, x: int, y: int) -> tuple:
         x_ = (x - self.min_x) * self.spacing + (
-            self.start_x + 35)
+            self.start_x)
         y_ = (y - self.min_y) * self.spacing + (
-            self.start_y + 85)
+            self.start_y)
         return (x_, y_)
 
-    def initialize_positions(self, graph: Graph) -> None:
+    def initialize_visualization(self, graph: Graph) -> None:
         spacing = self.spacing
 
         all_x = [zone.x for zone in graph.zones.values()]
@@ -296,3 +311,74 @@ class VisualizeSimulation:
         self.max_y = max_y
         self.start_x = start_x
         self.start_y = start_y
+
+        screen_with = self.pygame_info.current_w
+        screen_height = self.pygame_info.current_h
+
+        if screen_with < 3000:
+            # self.w_width = screen_with
+            # self.w_height = screen_height
+
+            self.change_size_image(
+                NameImages.DRONE.value,
+                SizeImages.SMALL.value
+            )
+            self.change_size_image(
+                NameImages.HUB.value,
+                SizeImages.SMALL.value
+            )
+            self.change_size_image(
+                NameImages.SPACING.value,
+                SizeImages.SMALL.value
+            )
+            self.change_size_image(
+                NameImages.ZONE_TYPES.value,
+                SizeImages.SMALL.value
+            )
+        else:
+            self.change_size_image(
+                NameImages.DRONE.value,
+                SizeImages.BIG.value
+            )
+            self.change_size_image(
+                NameImages.HUB.value,
+                SizeImages.BIG.value
+            )
+            self.change_size_image(
+                NameImages.SPACING.value,
+                SizeImages.BIG.value
+            )
+            self.change_size_image(
+                NameImages.ZONE_TYPES.value,
+                SizeImages.BIG.value
+            )
+
+        print(
+            f"WIDTH={screen_with}, HEIGHT={screen_height}"
+        )
+
+    def change_size_image(self, name_image: str, size: str) -> None:
+        if name_image == NameImages.HUB.value:
+            if size == SizeImages.BIG.value:
+                self.hub_w_h = (68, 175)
+            elif size == SizeImages.SMALL.value:
+                self.hub_w_h = (30, 80)
+        elif name_image == NameImages.DRONE.value:
+            if size == SizeImages.BIG.value:
+                self.image_path_drone = "assets/drone_big.png"
+                self.plus_drone_types = (30, 82)
+            elif size == SizeImages.SMALL.value:
+                self.image_path_drone = "assets/drone.png"
+                self.plus_drone_types = (15, 40)
+        elif name_image == NameImages.SPACING.value:
+            if size == SizeImages.BIG.value:
+                self.spacing = 250
+            elif size == SizeImages.SMALL.value:
+                self.spacing = 120
+        elif name_image == NameImages.ZONE_TYPES.value:
+            if size == SizeImages.BIG.value:
+                self.size_type_zones = (50, 50)
+                self.plus_zone_types = (10, 105)
+            elif size == SizeImages.SMALL.value:
+                self.size_type_zones = (25, 25)
+                self.plus_zone_types = (3, 48)

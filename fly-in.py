@@ -34,5 +34,5 @@ if __name__ == "__main__":
     # TODO: I have to start draw the zones with edges in the pygame hh
 
     visualize = VisualizeSimulation()
-    visualize.initialize_positions(graph)
+    visualize.initialize_visualization(graph)
     visualize.run(graph)
