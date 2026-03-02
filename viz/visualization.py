@@ -35,6 +35,7 @@ class VisualizeSimulation:
         self.min_y = 0
         self.max_x = 0
         self.max_y = 0
+        self.dynamic_scale = 0
         self.start_x = 0
         self.start_y = 0
         self.surface_width = self.w_width * 0.9
@@ -63,7 +64,7 @@ class VisualizeSimulation:
     def run(self, graph: Graph):
         pygame.display.set_caption("Fly-in")
         screen = pygame.display.set_mode(
-            (self.w_width, self.w_height)
+            (self.w_width, self.w_height), pygame.RESIZABLE
         )
 
         self.drone_img = pygame.image.load(
@@ -72,7 +73,7 @@ class VisualizeSimulation:
 
         load_original_bg = pygame.image.load(self.image_path).convert()
 
-        canvas = pygame.transform.scale(
+        canvas = pygame.transform.smoothscale(
             load_original_bg, (self.w_width, self.w_height)
         )
 
@@ -136,9 +137,9 @@ class VisualizeSimulation:
             color = zone.color if zone.color else THECOLORS.get("white")
 
             a, b, c, d = color
-            new_a = int(a * 0.7 + 255 * 0.3)
-            new_b = int(b * 0.7 + 255 * 0.3)
-            new_c = int(c * 0.7 + 255 * 0.3)
+            new_a = int(a * 0.6 + 255 * 0.3)
+            new_b = int(b * 0.6 + 255 * 0.3)
+            new_c = int(c * 0.6 + 255 * 0.3)
 
             new_load = self.colorize(
                 load_hub_image.convert_alpha(),
@@ -219,17 +220,11 @@ class VisualizeSimulation:
         self, x: int, y: int, min_x: int, min_y: int,
         max_x: int, max_y: int
     ) -> tuple:
-        render_x = (
-            ((x - min_x) * self.spacing + self.start_x) + (
-                self.hub_w_h[0] // 2
-            )
+        pos = self.__get_pos(x, y)
+        return (
+            pos[0] + self.hub_w_h[0] // 2,
+            pos[1] + self.hub_w_h[1] // 2
         )
-        render_y = (
-            ((y - min_y) * self.spacing + self.start_y) + (
-                self.hub_w_h[1] // 2
-            )
-        )
-        return (render_x, render_y)
 
     def colorize(self, image: object, size: tuple, color: tuple) -> object:
         color_surface = pygame.Surface(image.get_size()).convert_alpha()
@@ -278,9 +273,9 @@ class VisualizeSimulation:
         drone.current_y = target_pos[1]
 
     def __get_pos(self, x: int, y: int) -> tuple:
-        x_ = (x - self.min_x) * self.spacing + (
+        x_ = (x - self.min_x) * (self.spacing * self.dynamic_scale) + (
             self.start_x)
-        y_ = (y - self.min_y) * self.spacing + (
+        y_ = (y - self.min_y) * (self.spacing * self.dynamic_scale) + (
             self.start_y)
         return (x_, y_)
 
@@ -330,8 +325,8 @@ class VisualizeSimulation:
         all_x = [zone.x for zone in graph.zones.values()]
         all_y = [zone.y for zone in graph.zones.values()]
 
-        all_x += [graph.start_zone.x]
-        all_y += [graph.start_zone.y]
+        all_x += [graph.start_zone.x] + [graph.end_zone.x]
+        all_y += [graph.start_zone.y] + [graph.end_zone.y]
 
         if not all_x:
             return
@@ -339,18 +334,24 @@ class VisualizeSimulation:
         min_x, max_x = min(all_x), max(all_x)
         min_y, max_y = min(all_y), max(all_y)
 
-        content_width = (max_x - min_x) * spacing
-        content_height = (max_y - min_y) * spacing
+        raw_content_width = (max_x - min_x) * spacing + self.hub_w_h[0]
+        raw_content_height = (max_y - min_y) * spacing + self.hub_w_h[1]
 
-        start_x = (self.surface_width - content_width) // 2
-        start_y = (self.surface_height - content_height) // 2
+        padding = 150
+        width_radio = self.surface_width / (raw_content_width + padding)
+        height_radio = self.surface_height / (raw_content_height + padding)
+
+        self.dynamic_scale = min(width_radio, height_radio, 1.0)
+
+        scale_width = raw_content_width * self.dynamic_scale
+        scale_height = raw_content_height * self.dynamic_scale
 
         self.min_x = min_x
         self.min_y = min_y
         self.max_x = max_x
         self.max_y = max_y
-        self.start_x = start_x
-        self.start_y = start_y
+        self.start_x = (self.w_width - scale_width) // 2
+        self.start_y = (self.w_height - scale_height) // 2
 
         print(
             f"WIDTH={screen_with}, HEIGHT={screen_height}"
