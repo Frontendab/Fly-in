@@ -290,8 +290,6 @@ class VisualizeSimulation:
         screen_height = self.pygame_info.current_h
 
         if screen_with < 3000:
-            self.w_width = screen_with
-            self.w_height = screen_height
 
             self.change_size_image(
                 NameImages.DRONE.value,
