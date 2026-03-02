@@ -285,39 +285,13 @@ class VisualizeSimulation:
         return (x_, y_)
 
     def initialize_visualization(self, graph: Graph) -> None:
-        spacing = self.spacing
-
-        all_x = [zone.x for zone in graph.zones.values()]
-        all_y = [zone.y for zone in graph.zones.values()]
-
-        all_x += [graph.start_zone.x]
-        all_y += [graph.start_zone.y]
-
-        if not all_x:
-            return
-
-        min_x, max_x = min(all_x), max(all_x)
-        min_y, max_y = min(all_y), max(all_y)
-
-        content_width = (max_x - min_x) * spacing
-        content_height = (max_y - min_y) * spacing
-
-        start_x = (self.surface_width - content_width) // 2
-        start_y = (self.surface_height - content_height) // 2
-
-        self.min_x = min_x
-        self.min_y = min_y
-        self.max_x = max_x
-        self.max_y = max_y
-        self.start_x = start_x
-        self.start_y = start_y
 
         screen_with = self.pygame_info.current_w
         screen_height = self.pygame_info.current_h
 
         if screen_with < 3000:
-            # self.w_width = screen_with
-            # self.w_height = screen_height
+            self.w_width = screen_with
+            self.w_height = screen_height
 
             self.change_size_image(
                 NameImages.DRONE.value,
@@ -352,6 +326,33 @@ class VisualizeSimulation:
                 NameImages.ZONE_TYPES.value,
                 SizeImages.BIG.value
             )
+
+        spacing = self.spacing
+
+        all_x = [zone.x for zone in graph.zones.values()]
+        all_y = [zone.y for zone in graph.zones.values()]
+
+        all_x += [graph.start_zone.x]
+        all_y += [graph.start_zone.y]
+
+        if not all_x:
+            return
+
+        min_x, max_x = min(all_x), max(all_x)
+        min_y, max_y = min(all_y), max(all_y)
+
+        content_width = (max_x - min_x) * spacing
+        content_height = (max_y - min_y) * spacing
+
+        start_x = (self.surface_width - content_width) // 2
+        start_y = (self.surface_height - content_height) // 2
+
+        self.min_x = min_x
+        self.min_y = min_y
+        self.max_x = max_x
+        self.max_y = max_y
+        self.start_x = start_x
+        self.start_y = start_y
 
         print(
             f"WIDTH={screen_with}, HEIGHT={screen_height}"
