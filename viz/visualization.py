@@ -94,6 +94,7 @@ class VisualizeSimulation:
             self.angle = (self.angle + 10) % 360
 
             self.__draw_drones(screen, graph)
+            # TODO: I have to complete the move drone animation
             # self.__move_drone(screen, graph)
 
             pygame.display.update()
