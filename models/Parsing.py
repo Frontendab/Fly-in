@@ -28,9 +28,7 @@ class FileParser:
         finding = {
             ConfigKeyTypes.NB.value: 0,
             ConfigKeyTypes.START.value: 0,
-            ConfigKeyTypes.HUBS.value: 0,
             ConfigKeyTypes.END.value: 0,
-            ConfigKeyTypes.CONN.value: 0
         }
         with open(self.file_name, "r") as file:
             lines = file.readlines()
@@ -68,10 +66,14 @@ class FileParser:
                         )
                     nb_drones = line.split(" ", 1)[1]
                     self.nb_drones = int(nb_drones)
+                elif finding.get(ConfigKeyTypes.NB.value, 0) > 1:
+                    display_errors_msg(
+                        f"Line {num}: Duplicate {ConfigKeyTypes.NB.value}"
+                    )
                 elif finding.get(ConfigKeyTypes.NB.value, 0) == 0:
                     display_errors_msg(
                         f"Line {num}: Drones number must be defined in " +
-                        f"the first line\n-> {ConfigKeyTypes.NB.value}:" +
+                        f"the first line\n-> {ConfigKeyTypes.NB.value}" +
                         " <number>"
                     )
 
