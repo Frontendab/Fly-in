@@ -115,9 +115,17 @@ class FileParser:
                         display_errors_msg(
                             f"Line {num}: Duplicate start hub!"
                         )
+                    elif finding.get(ConfigKeyTypes.START.value) == 0:
+                        display_errors_msg(
+                            f"Line {num}: Start hub doesn't exist!"
+                        )
                     elif finding.get(ConfigKeyTypes.END.value) > 1:
                         display_errors_msg(
                             f"Line {num}: Duplicate end hub!"
+                        )
+                    elif finding.get(ConfigKeyTypes.END.value) == 0:
+                        display_errors_msg(
+                            f"Line {num}: End hub doesn't exist!"
                         )
 
                     if not is_match:
