@@ -337,7 +337,7 @@ class VisualizeSimulation:
         raw_content_width = (max_x - min_x) * spacing + self.hub_w_h[0]
         raw_content_height = (max_y - min_y) * spacing + self.hub_w_h[1]
 
-        padding = 150
+        padding = 100
         width_radio = self.surface_width / (raw_content_width + padding)
         height_radio = self.surface_height / (raw_content_height + padding)
 
@@ -374,7 +374,7 @@ class VisualizeSimulation:
             if size == SizeImages.BIG:
                 self.spacing = 250
             elif size == SizeImages.SMALL:
-                self.spacing = 120
+                self.spacing = 300
         elif name_image == NameImages.ZONE_TYPES:
             if size == SizeImages.BIG:
                 self.size_type_zones = (50, 50)
