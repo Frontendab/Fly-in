@@ -24,10 +24,15 @@ CREATE_VENV = $(PYTHON) -m venv $(VENV)
 
 INSTALL_DEPS = $(PIP) install -r requirements.txt
 
+UPDATE_PIP = ./$(VENV)/bin/python3 -m pip install --upgrade pip
+
+
 # ? Install a Python package using pip
 install:
 	@echo "Create virtual environment..."
 	@$(CREATE_VENV)
+	@echo "Updating pip..."
+	@$(UPDATE_PIP)
 	@echo "Installing dependencies..."
 	@$(INSTALL_DEPS)
 	@echo "Dependencies installed successfully."
