@@ -3,8 +3,7 @@ from pygame.colordict import THECOLORS
 from models import Graph, Zone, ZoneTypes, Drone
 from typing import Dict, Tuple
 from enum import Enum
-import math
-import sys
+from math import hypot
 
 
 class SizeImages(Enum):
@@ -277,7 +276,7 @@ class VisualizeSimulation:
         dx = target_x - drone.current_x
         dy = target_y - drone.current_y
 
-        distance = math.hypot(dx, dy)
+        distance = hypot(dx, dy)
 
         speed = self.speed_drones * self.dynamic_scale
         if distance <= speed:
