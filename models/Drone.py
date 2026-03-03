@@ -5,7 +5,6 @@ from pydantic import (
     model_validator
 )
 from pydantic_core import PydanticCustomError
-from typing import Optional
 
 
 class ValidateDrone(BaseModel):

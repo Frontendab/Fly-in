@@ -1,7 +1,7 @@
 import pygame
 from pygame.colordict import THECOLORS
 from models import Graph, Zone, ZoneTypes, Drone
-from typing import Dict
+from typing import Dict, Tuple
 from enum import Enum
 
 
@@ -82,6 +82,7 @@ class VisualizeSimulation:
         self.__draw_zones(base_canvas, graph)
         self.__draw_type_zone(base_canvas, graph)
 
+        self.__initialize_drone_start(graph)
         running = True
         while running:
 
@@ -95,7 +96,10 @@ class VisualizeSimulation:
 
             self.__draw_drones(screen, graph)
             # TODO: I have to complete the move drone animation
-            # self.__move_drone(screen, graph)
+
+            drone = graph.get_drone("D2")
+            path = (drone, drone.current_zone, drone.target_zone[2], False)
+            self.__move_drone(path, screen, graph)
 
             pygame.display.update()
             self.clock.tick(60)
@@ -211,11 +215,11 @@ class VisualizeSimulation:
             )
 
             self.space_drones.update({
-                drone: rotate_drone
+                drone.id: rotate_drone
             })
 
-    def get_drone(self, drone: Drone) -> pygame.Surface:
-        return self.space_drones.get(drone, None)
+    def get_drone(self, id: str) -> pygame.Surface:
+        return self.space_drones.get(id, None)
 
     def get_render_coords(
         self, x: int, y: int, min_x: int, min_y: int,
@@ -251,27 +255,11 @@ class VisualizeSimulation:
         canvas.blit(rotate_image, rect.topleft)
         return rotate_image
 
-    def __move_drone(self, canvas: pygame.Surface, graph: Graph) -> None:
-        drone = graph.get_drone("D1")
-
-        surface = self.get_drone(drone)
-
-        target_pos = self.__get_pos(
-            drone.target_zone[0].x, drone.target_zone[0].y
-        )
-
-        rect = surface.get_rect(
-            center=(
-                drone.current_x + self.plus_drone_types[0],
-                drone.current_y + self.plus_drone_types[1]
-            )
-        )
-
-        canvas.blit(surface, rect.topleft)
-        if drone.current_x >= target_pos[0]:
-            return
-        drone.current_x += 2
-        drone.current_y = target_pos[1]
+    def __move_drone(
+        self, path: Tuple[Drone, Zone, Zone, bool], canvas: pygame.Surface,
+        graph: Graph
+    ) -> None:
+        pass
 
     def __get_pos(self, x: int, y: int) -> tuple:
         x_ = (x - self.min_x) * (self.spacing * self.dynamic_scale) + (
@@ -383,3 +371,11 @@ class VisualizeSimulation:
             elif size == SizeImages.SMALL:
                 self.size_type_zones = (25, 25)
                 self.plus_zone_types = (3, 48)
+
+    def __initialize_drone_start(self, graph: Graph) -> None:
+        for drone in graph.drones.values():
+            current_pos = self.__get_pos(
+                drone.current_zone.x, drone.current_zone.y
+            )
+            drone.current_x = current_pos[0]
+            drone.current_y = current_pos[1]
