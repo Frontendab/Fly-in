@@ -3,6 +3,8 @@ from pygame.colordict import THECOLORS
 from models import Graph, Zone, ZoneTypes, Drone
 from typing import Dict, Tuple
 from enum import Enum
+import math
+import sys
 
 
 class SizeImages(Enum):
@@ -60,6 +62,7 @@ class VisualizeSimulation:
         self.space_drones: Dict[Drone, pygame.Surface] = {}
         self.plus_zone_types = (10, 105)
         self.plus_drone_types = (15, 40)
+        self.speed_drones = 3
 
     def run(self, graph: Graph):
         pygame.display.set_caption("Fly-in")
@@ -90,6 +93,10 @@ class VisualizeSimulation:
                 if event.type == pygame.QUIT:
                     running = False
 
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        running = False
+
             screen.blit(base_canvas, (0, 0))
 
             self.angle = (self.angle + 10) % 360
@@ -98,7 +105,7 @@ class VisualizeSimulation:
             # TODO: I have to complete the move drone animation
 
             drone = graph.get_drone("D2")
-            path = (drone, drone.current_zone, drone.target_zone[2], False)
+            path = (drone, drone.target_zone[2])
             self.__move_drone(path, screen, graph)
 
             pygame.display.update()
@@ -259,7 +266,44 @@ class VisualizeSimulation:
         self, path: Tuple[Drone, Zone, Zone, bool], canvas: pygame.Surface,
         graph: Graph
     ) -> None:
-        pass
+        drone, target_zone = path
+        surface = self.get_drone(drone.id)
+
+        target_pos = self.__get_pos(
+            target_zone.x, target_zone.y
+        )
+        target_x, target_y = target_pos
+
+        dx = target_x - drone.current_x
+        dy = target_y - drone.current_y
+
+        distance = math.hypot(dx, dy)
+
+        speed = self.speed_drones * self.dynamic_scale
+        if distance <= speed:
+            drone.current_x = target_x
+            drone.current_y = target_y
+            if surface:
+                rect = surface.get_rect(
+                    center=(
+                        drone.current_x + self.plus_drone_types[0],
+                        drone.current_y + self.plus_drone_types[1]
+                    )
+                )
+                canvas.blit(surface, rect.topleft)
+            return
+
+        drone.current_x += (dx / distance) * speed
+        drone.current_y += (dy / distance) * speed
+
+        if surface:
+            rect = surface.get_rect(
+                center=(
+                    drone.current_x + self.plus_drone_types[0],
+                    drone.current_y + self.plus_drone_types[1]
+                )
+            )
+            canvas.blit(surface, rect.topleft)
 
     def __get_pos(self, x: int, y: int) -> tuple:
         x_ = (x - self.min_x) * (self.spacing * self.dynamic_scale) + (
