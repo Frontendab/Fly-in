@@ -1,6 +1,9 @@
 import pygame
 from pygame.colordict import THECOLORS
-from models import Graph, Zone, ZoneTypes, Drone
+from models import (
+    Graph, Zone, ZoneTypes,
+    Drone, PathFinder
+)
 from typing import Dict, Tuple
 from enum import Enum
 from math import hypot
@@ -50,12 +53,6 @@ class VisualizeSimulation:
             "border": 5
         }
         self.size_type_zones = (25, 25)
-        self.cost_zones = {
-            ZoneTypes.NORMAL.value: 1,
-            ZoneTypes.RESTRICTED.value: 2,
-            ZoneTypes.PRIORITY.value: 1,
-            ZoneTypes.BLOCKED.value: 0,
-        }
         self.angle = 0
         self.clock = pygame.time.Clock()
         self.space_drones: Dict[Drone, pygame.Surface] = {}
@@ -66,7 +63,7 @@ class VisualizeSimulation:
     def run(self, graph: Graph):
         pygame.display.set_caption("Fly-in")
         screen = pygame.display.set_mode(
-            (self.w_width, self.w_height), pygame.RESIZABLE
+            (self.w_width, self.w_height)
         )
 
         self.drone_img = pygame.image.load(
@@ -85,6 +82,19 @@ class VisualizeSimulation:
         self.__draw_type_zone(base_canvas, graph)
 
         self.__initialize_drone_start(graph)
+
+        # TODO: TESTING ALGORITHM OF A*(A-STAR)
+        drone = graph.get_drone("D1")
+        end = graph.get_zone("goal")
+        reserved_slots = 0
+
+        pathfinder = PathFinder()
+
+        pathfinder.get_path(
+            drone, drone.current_zone,
+            end, reserved_slots
+        )
+
         running = True
         while running:
 
@@ -104,7 +114,7 @@ class VisualizeSimulation:
             # TODO: I have to complete the move drone animation
 
             drone = graph.get_drone("D2")
-            path = (drone, drone.target_zone[2])
+            path = (drone, drone.target_zone[0])
             self.__move_drone(path, screen, graph)
 
             pygame.display.update()

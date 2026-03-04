@@ -77,3 +77,4 @@ class Zone:
         self.color: Union[str, tuple, None] = valid_zone.color
         self.current_drones: int = valid_zone.current_drones
         self.target_zone: Zone = []
+        self.contain_zones: int = 0
