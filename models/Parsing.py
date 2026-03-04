@@ -42,7 +42,8 @@ class FileParser:
                 connection = {}
                 hub = {}
                 metadata_dict = {}
-                line = line[:-1]
+                if line[-1] == '\n':
+                    line = line[:-1]
 
                 if line.startswith("#"):
                     continue
