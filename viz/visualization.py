@@ -114,6 +114,7 @@ class VisualizeSimulation:
             # TODO: I have to complete the move drone animation
 
             drone = graph.get_drone("D2")
+            # TODO: [drone, [start, next_node, next_node]]
             path = (drone, drone.target_zone[0])
             self.__move_drone(path, screen, graph)
 
