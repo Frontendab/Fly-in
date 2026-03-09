@@ -58,7 +58,8 @@ class VisualizeSimulation:
         self.space_drones: Dict[Drone, pygame.Surface] = {}
         self.plus_zone_types = (10, 105)
         self.plus_drone_types = (15, 40)
-        self.speed_drones = 3
+        self.speed_drones = 5
+        self.current_sim_turns = 0
 
     def run(self, graph: Graph):
         pygame.display.set_caption("Fly-in")
@@ -84,16 +85,8 @@ class VisualizeSimulation:
         self.__initialize_drone_start(graph)
 
         # TODO: TESTING ALGORITHM OF A*(A-STAR)
-        drone = graph.get_drone("D1")
-        end = graph.get_zone("goal")
-        reserved_slots = 0
-
-        pathfinder = PathFinder()
-
-        pathfinder.get_path(
-            drone, drone.current_zone,
-            end, reserved_slots
-        )
+        pathfinder = PathFinder(graph)
+        pathfinder.a_star_search()
 
         running = True
         while running:
@@ -113,10 +106,8 @@ class VisualizeSimulation:
             self.__draw_drones(screen, graph)
             # TODO: I have to complete the move drone animation
 
-            drone = graph.get_drone("D2")
             # TODO: [drone, [start, next_node, next_node]]
-            path = (drone, drone.target_zone[0])
-            self.__move_drone(path, screen, graph)
+            self.__move_drones(screen, graph)
 
             pygame.display.update()
             self.clock.tick(60)
@@ -272,40 +263,51 @@ class VisualizeSimulation:
         canvas.blit(rotate_image, rect.topleft)
         return rotate_image
 
-    def __move_drone(
-        self, path: Tuple[Drone, Zone, Zone, bool], canvas: pygame.Surface,
+    def __move_drones(
+        self, canvas: pygame.Surface,
         graph: Graph
     ) -> None:
-        drone, target_zone = path
-        surface = self.get_drone(drone.id)
+        all_drones_targets = True
+        for i, drone in enumerate(graph.drones.values()):
+            if not hasattr(drone, "departure_turn"):
+                drone.departure_turn = i * 35
 
-        target_pos = self.__get_pos(
-            target_zone.x, target_zone.y
-        )
-        target_x, target_y = target_pos
+            if self.current_sim_turns < drone.departure_turn:
+                self.__draw_single_drone(canvas, drone)
+                continue
 
-        dx = target_x - drone.current_x
-        dy = target_y - drone.current_y
-
-        distance = hypot(dx, dy)
-
-        speed = self.speed_drones * self.dynamic_scale
-        if distance <= speed:
-            drone.current_x = target_x
-            drone.current_y = target_y
-            if surface:
-                rect = surface.get_rect(
-                    center=(
-                        drone.current_x + self.plus_drone_types[0],
-                        drone.current_y + self.plus_drone_types[1]
-                    )
+            if drone.target_index < len(drone.path):
+                target = drone.path[drone.target_index]
+                target_pos = self.__get_pos(
+                    target.x,
+                    target.y
                 )
-                canvas.blit(surface, rect.topleft)
-            return
+                target_x, target_y = target_pos
 
-        drone.current_x += (dx / distance) * speed
-        drone.current_y += (dy / distance) * speed
+                dx = target_x - drone.current_x
+                dy = target_y - drone.current_y
+                distance = hypot(dx, dy)
 
+                speed = self.speed_drones * self.dynamic_scale
+                if target.zone_type == ZoneTypes.RESTRICTED:
+                    speed /= 2
+                if distance <= speed:
+                    drone.current_x = target_x
+                    drone.current_y = target_y
+                    drone.target_index += 1
+                else:
+                    drone.current_x += (dx / distance) * speed
+                    drone.current_y += (dy / distance) * speed
+
+                self.__draw_single_drone(canvas, drone)
+
+        if all_drones_targets:
+            self.current_sim_turns += 1
+
+    def __draw_single_drone(
+        self, canvas: pygame.Surface, drone: Drone
+    ) -> None:
+        surface = self.get_drone(drone.id)
         if surface:
             rect = surface.get_rect(
                 center=(

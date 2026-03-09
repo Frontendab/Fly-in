@@ -42,6 +42,9 @@ class Drone:
         self.target_zone: Zone = target_zone
         self.current_x: int = current_zone.x
         self.current_y: int = current_zone.y
+        self.path: List[Zone] = []
+        self.target_index = 0
+        self.is_moving = False
 
     def get_x(self, viz: object) -> None:
         return (self.current_zone.x - viz.min_x) * viz.spacing + (

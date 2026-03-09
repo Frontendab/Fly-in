@@ -78,3 +78,16 @@ class Zone:
         self.current_drones: int = valid_zone.current_drones
         self.target_zone: Zone = []
         self.contain_zones: int = 0
+        self.g: int = self.get_cost(self.zone_type)
+        self.h: int = float("inf")
+        self.f: int = float("inf")
+        self.parent: Zone = None
+
+    def get_cost(self, zone_type: ZoneTypes) -> str:
+        cost_zones = {
+            ZoneTypes.NORMAL: 1,
+            ZoneTypes.RESTRICTED: 2,
+            ZoneTypes.PRIORITY: 1,
+            ZoneTypes.BLOCKED: 0,
+        }
+        return cost_zones.get(zone_type, 0)
