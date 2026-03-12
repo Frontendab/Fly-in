@@ -20,7 +20,6 @@ class PathFinder:
     ) -> None:
         open_list = [(0.0, next(self.counter), 0, start, [start])]
         visited = set()
-        priority_bonus = 0.0
 
         while open_list:
             _, _, current_turn, current_zone, path = heappop(open_list)
@@ -39,23 +38,27 @@ class PathFinder:
                 if neighbor.zone_type == ZoneTypes.BLOCKED:
                     continue
 
-                if neighbor.zone_type == ZoneTypes.PRIORITY:
-                    priority_bonus = 0.1
+                priority_bonus = (
+                    0.1 if neighbor.zone_type == ZoneTypes.PRIORITY else 0.0
+                )
 
                 arrival_turn = current_turn + neighbor.g
 
-                if (self.__is_zone_available(neighbor, current_turn)
-                    and self.__is_link_available(current_zone, neighbor, current_turn)
+                if (
+                    self.__is_zone_available(neighbor, current_turn)
+                    and self.__is_link_available(
+                        current_zone, neighbor, current_turn
+                    )
                 ):
-                    new_path = path + [neighbor]
-                    if neighbor.g == 2:
-                        new_path = path + [neighbor, neighbor]
+                    new_path = path + ([neighbor] * neighbor.g)
+
                     g = arrival_turn
                     h = self.__calc_h_distance(neighbor)
                     heappush(
                         open_list, (
-                            g + h  - priority_bonus,
-                            next(self.counter), arrival_turn, neighbor, new_path
+                            g + h - priority_bonus,
+                            next(self.counter), arrival_turn,
+                            neighbor, new_path
                         )
                     )
 
@@ -66,19 +69,17 @@ class PathFinder:
                     heappush(
                         open_list, (
                             g + h + 0.5,
-                            next(self.counter), wait_turn, current_zone, path + [current_zone]
+                            next(self.counter), wait_turn,
+                            current_zone, path + [current_zone]
                         )
                     )
-
         return []
-
 
     def __is_zone_available(self, zone: Zone, turn: int) -> bool:
         if zone == self.graph.start_zone or zone == self.graph.end_zone:
             return True
         max_capacity = getattr(zone, "max_drones", 1)
         return self.zone_occupancy[turn][zone.name] < max_capacity
-
 
     def __is_link_available(self, z1: Zone, z2: Zone, turn: int) -> bool:
         edge = tuple(sorted((z1.name, z2.name)))
@@ -87,7 +88,6 @@ class PathFinder:
         )
         max_link = getattr(connection, "max_link_capacity", 1)
         return self.edge_occupancy[turn][edge] < max_link
-
 
     def __reserve_path(self, path: List[Zone]) -> None:
         t = 0
@@ -107,7 +107,6 @@ class PathFinder:
                 t += 1
             else:
                 t += 1
-
 
     def a_star_search(self) -> None:
         self.zone_occupancy.clear()
@@ -134,4 +133,3 @@ class PathFinder:
                 (self.graph.end_zone.x, self.graph.end_zone.y),
             )
         )
-

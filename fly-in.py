@@ -1,6 +1,5 @@
 from viz import VisualizeSimulation
 from models import Graph, PydanticError, FileParser
-from utils import display_errors_msg
 from pydantic import ValidationError
 import sys
 from utils import initialize_graph

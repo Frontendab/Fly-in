@@ -103,9 +103,7 @@ class VisualizeSimulation:
 
             self.angle = (self.angle + 10) % 360
 
-            self.__draw_drones(screen, graph)
-
-            self.__move_drones(screen, graph)
+            self.__animation_drones(screen, graph)
 
             pygame.display.update()
             self.clock.tick(60)
@@ -204,26 +202,6 @@ class VisualizeSimulation:
                 )
                 canvas.blit(hub_image, current_pos)
 
-    def __draw_drones(
-        self, canvas: pygame.Surface, graph: Graph
-    ) -> None:
-
-        self.space_drones = {}
-
-        for drone in graph.drones.values():
-            current_pos = self.__get_pos(
-                drone.current_zone.x, drone.current_zone.y
-            )
-
-            rotate_drone = self.__rotate_image(
-                canvas, current_pos[0] + self.plus_drone_types[0],
-                current_pos[1] + self.plus_drone_types[1]
-            )
-
-            self.space_drones.update({
-                drone.id: rotate_drone
-            })
-
     def get_drone(self, id: str) -> pygame.Surface:
         return self.space_drones.get(id, None)
 
@@ -256,12 +234,9 @@ class VisualizeSimulation:
             self.angle
         )
 
-        rect = rotate_image.get_rect(center=(draw_x, draw_y))
-
-        canvas.blit(rotate_image, rect.topleft)
         return rotate_image
 
-    def __move_drones(
+    def __animation_drones(
         self, canvas: pygame.Surface,
         graph: Graph
     ) -> None:
@@ -269,7 +244,7 @@ class VisualizeSimulation:
         for i, drone in enumerate(graph.drones.values()):
 
             if not hasattr(drone, "departure_turn"):
-                drone.departure_turn = i * 35
+                drone.departure_turn = i * 45
 
             if self.current_sim_turns < drone.departure_turn:
                 self.__draw_single_drone(canvas, drone)
@@ -291,7 +266,7 @@ class VisualizeSimulation:
                 if target.zone_type == ZoneTypes.RESTRICTED:
                     speed /= 2
                 if target.zone_type == ZoneTypes.PRIORITY:
-                    speed += 4
+                    speed += 3
                 if distance <= speed:
                     drone.current_x = target_x
                     drone.current_y = target_y
@@ -308,7 +283,15 @@ class VisualizeSimulation:
     def __draw_single_drone(
         self, canvas: pygame.Surface, drone: Drone
     ) -> None:
-        surface = self.get_drone(drone.id)
+        current_pos = self.__get_pos(
+            drone.current_zone.x, drone.current_zone.y
+        )
+
+        surface = self.__rotate_image(
+            canvas, current_pos[0] + self.plus_drone_types[0],
+            current_pos[1] + self.plus_drone_types[1]
+        )
+
         if surface:
             rect = surface.get_rect(
                 center=(
