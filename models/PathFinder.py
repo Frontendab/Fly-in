@@ -5,76 +5,127 @@ from .Graph import Graph
 from heapq import heappush, heappop
 from math import dist
 from itertools import count
-
-
-# TODO: I have to add max_drones, max_link_capacity, use space time...
+from collections import defaultdict
 
 
 class PathFinder:
     def __init__(self, graph: Graph) -> None:
         self.graph = graph
         self.counter = count()
+        self.zone_occupancy = defaultdict(lambda: defaultdict(int))
+        self.edge_occupancy = defaultdict(lambda: defaultdict(int))
 
     def get_path(
         self, drone: Drone, start: Zone, end: Zone,
     ) -> None:
-        open_list = []
-        closed_list = {
-            (start.x, start.y):
-            (False, start.x, start.y),
-        }
-        closed_list.update({
-            (zone.x, zone.y):
-            (False, zone.x, zone.y)
-            for zone in self.graph.zones.values()
-        })
+        open_list = [(0.0, next(self.counter), 0, start, [start])]
+        visited = set()
+        priority_bonus = 0.0
 
-        # HINT: Initialize start node
-        start.h = 0
-        start.f = 0
+        while open_list:
+            _, _, current_turn, current_zone, path = heappop(open_list)
 
-        heappush(
-            open_list,
-            (0.0, next(self.counter), start)
-        )
-        while len(open_list) > 0:
-            _, _, best_zone = heappop(open_list)
-            closed_list[(best_zone.x, best_zone.y)] = (
-                True, best_zone.x, best_zone.y
-            )
-            for zone in best_zone.target_zone:
+            if current_zone == end:
+                self.__reserve_path(path)
+                return path
 
-                if zone.zone_type == ZoneTypes.BLOCKED:
+            state = (current_zone.name, current_turn)
+            if state in visited:
+                continue
+            visited.add(state)
+
+            for neighbor in current_zone.target_zone:
+
+                if neighbor.zone_type == ZoneTypes.BLOCKED:
                     continue
 
-                if self.__is_destination(zone) and not closed_list.get(
-                    (zone.x, zone.y), None
+                if neighbor.zone_type == ZoneTypes.PRIORITY:
+                    priority_bonus = 0.1
+
+                arrival_turn = current_turn + neighbor.g
+
+                if (self.__is_zone_available(neighbor, current_turn)
+                    and self.__is_link_available(current_zone, neighbor, current_turn)
                 ):
-                    return self.__get_final_path(best_zone)
-                else:
-                    new_h = self.__calc_h_distance(zone)
-                    new_f = zone.g + new_h
-                    if zone.f == float("inf") or zone.f >= new_f:
-                        zone.h = new_h
-                        zone.f = new_f
-                        zone.parent = best_zone
-                        heappush(
-                            open_list,
-                            (zone.f, next(self.counter), zone)
+                    new_path = path + [neighbor]
+                    if neighbor.g == 2:
+                        new_path = path + [neighbor, neighbor]
+                    g = arrival_turn
+                    h = self.__calc_h_distance(neighbor)
+                    heappush(
+                        open_list, (
+                            g + h  - priority_bonus,
+                            next(self.counter), arrival_turn, neighbor, new_path
                         )
+                    )
+
+                wait_turn = current_turn + 1
+                if self.__is_zone_available(current_zone, wait_turn):
+                    g = wait_turn
+                    h = self.__calc_h_distance(current_zone)
+                    heappush(
+                        open_list, (
+                            g + h + 0.5,
+                            next(self.counter), wait_turn, current_zone, path + [current_zone]
+                        )
+                    )
+
+        return []
+
+
+    def __is_zone_available(self, zone: Zone, turn: int) -> bool:
+        if zone == self.graph.start_zone or zone == self.graph.end_zone:
+            return True
+        max_capacity = getattr(zone, "max_drones", 1)
+        return self.zone_occupancy[turn][zone.name] < max_capacity
+
+
+    def __is_link_available(self, z1: Zone, z2: Zone, turn: int) -> bool:
+        edge = tuple(sorted((z1.name, z2.name)))
+        connection = self.graph.get_connection(
+            f"{z1.name}-{z2.name}"
+        )
+        max_link = getattr(connection, "max_link_capacity", 1)
+        return self.edge_occupancy[turn][edge] < max_link
+
+
+    def __reserve_path(self, path: List[Zone]) -> None:
+        t = 0
+        for i in range(len(path)):
+            current_zone = path[i]
+            self.zone_occupancy[t][current_zone.name] += 1
+
+            if i < len(path) - 1:
+                next_zone = path[i + 1]
+                if next_zone.name != current_zone.name:
+                    edge = tuple(
+                        sorted(
+                            (current_zone.name, next_zone.name)
+                        )
+                    )
+                    self.edge_occupancy[t][edge] += 1
+                t += 1
+            else:
+                t += 1
+
 
     def a_star_search(self) -> None:
-        for drone in self.graph.drones.values():
-            drone_surface = self.graph.get_drone(drone.id)
-            drone_surface.path = self.get_path(
-                drone_surface, self.graph.start_zone,
+        self.zone_occupancy.clear()
+        self.edge_occupancy.clear()
+
+        drones = sorted(
+            self.graph.drones.values(),
+            key=lambda drone: drone.id
+        )
+
+        for drone in drones:
+            path = self.get_path(
+                drone, self.graph.start_zone,
                 self.graph.end_zone
             )
-
-    def __is_destination(self, node: Zone) -> bool:
-        if node == self.graph.end_zone:
-            return True
-        return False
+            drone.path = path
+            if not path:
+                print(f"Warning: No path found for {drone.id}")
 
     def __calc_h_distance(self, zone: Zone) -> int:
         return (
@@ -84,12 +135,3 @@ class PathFinder:
             )
         )
 
-    def __get_final_path(self, zone: Zone) -> List[Zone]:
-        path = []
-        current = zone
-        while current is not None:
-            path.append(current)
-            current = getattr(current, "parent", None)
-        path.reverse()
-        path += [self.graph.end_zone]
-        return path

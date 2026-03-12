@@ -104,9 +104,7 @@ class VisualizeSimulation:
             self.angle = (self.angle + 10) % 360
 
             self.__draw_drones(screen, graph)
-            # TODO: I have to complete the move drone animation
 
-            # TODO: [drone, [start, next_node, next_node]]
             self.__move_drones(screen, graph)
 
             pygame.display.update()
@@ -269,6 +267,7 @@ class VisualizeSimulation:
     ) -> None:
         all_drones_targets = True
         for i, drone in enumerate(graph.drones.values()):
+
             if not hasattr(drone, "departure_turn"):
                 drone.departure_turn = i * 35
 
@@ -291,6 +290,8 @@ class VisualizeSimulation:
                 speed = self.speed_drones * self.dynamic_scale
                 if target.zone_type == ZoneTypes.RESTRICTED:
                     speed /= 2
+                if target.zone_type == ZoneTypes.PRIORITY:
+                    speed += 4
                 if distance <= speed:
                     drone.current_x = target_x
                     drone.current_y = target_y
@@ -299,7 +300,7 @@ class VisualizeSimulation:
                     drone.current_x += (dx / distance) * speed
                     drone.current_y += (dy / distance) * speed
 
-                self.__draw_single_drone(canvas, drone)
+            self.__draw_single_drone(canvas, drone)
 
         if all_drones_targets:
             self.current_sim_turns += 1
