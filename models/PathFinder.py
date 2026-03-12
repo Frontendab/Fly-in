@@ -8,6 +8,9 @@ from itertools import count
 from collections import defaultdict
 
 
+# TODO: khasni nchof wach n9dar nfiksi speed bach gama itlas9o drones fi chi pos and verify everything with improve algo
+
+
 class PathFinder:
     def __init__(self, graph: Graph) -> None:
         self.graph = graph
