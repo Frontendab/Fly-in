@@ -7,7 +7,7 @@ PIP = ./$(VENV)/bin/pip
 MYPY = ./$(VENV)/bin/mypy
 FLAKE8 = ./$(VENV)/bin/flake8
 
-FILE_NAME_MAP = maps/easy/01_linear_path.txt
+FILE_NAME_MAP = assets/config.txt
 
 PROGRAM_NAME = fly-in
 

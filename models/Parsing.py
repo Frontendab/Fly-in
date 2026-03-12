@@ -167,6 +167,8 @@ class FileParser:
                                         f"{self.__metadata_connection}!"
                                     )
                                 metadata_dict[key] = value
+                                if "max_drones" in key:
+                                    metadata_dict[key] = int(value)
 
                         if self.is_duplicate_metadata_key(metadata_items):
                             display_errors_msg(
@@ -244,6 +246,16 @@ class FileParser:
                 display_errors_msg(
                     f"{ConfigKeyTypes.END.value} doesn't exist!"
                 )
+
+        start_max = self.start_zone.get("metadata").get("max_drones")
+        end_max = self.end_zone.get("metadata").get("max_drones")
+
+        if (
+            (start_max and end_max)
+            and (start_max < self.nb_drones or end_max < self.nb_drones)):
+            display_errors_msg(
+                "'max_drones' in start/end zones must be qual or greater than 'nb_drones'!"
+            )
 
         return {
             ConfigKeyTypes.NB.value: self.nb_drones,
