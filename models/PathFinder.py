@@ -6,7 +6,7 @@ from heapq import heappush, heappop
 from math import dist
 from itertools import count
 from collections import defaultdict
-
+import re
 
 # TODO: khasni nchof wach n9dar nfiksi speed bach gama itlas9o drones fi chi pos and verify everything with improve algo
 
@@ -73,7 +73,7 @@ class PathFinder:
                         open_list, (
                             g + h + 0.5,
                             next(self.counter), wait_turn,
-                            current_zone, path + [current_zone]
+                            current_zone, path + ([current_zone] * wait_turn)
                         )
                     )
         return []
@@ -136,3 +136,40 @@ class PathFinder:
             drone.path = path
             if not path:
                 print(f"Warning: No path found for {drone.id}")
+
+    def generate_output_trace(self):
+        def get_drone_number(drone_id):
+            match = re.search(r'\d+', drone_id)
+            return int(match.group()) if match else 0
+
+        # حساب أقصى عدد من الأدوار الفعلية
+        max_turns = 0
+        for drone in self.graph.drones.values():
+            if hasattr(drone, 'path'):
+                max_turns = max(max_turns, len(drone.path))
+
+        for t in range(1, max_turns):
+            current_turn_moves = []
+            sorted_drones = sorted(self.graph.drones.values(), key=lambda d: get_drone_number(d.id))
+            
+            for drone in sorted_drones:
+                if t < len(drone.path):
+                    curr = drone.path[t]
+                    prev = drone.path[t-1]
+                    
+                    # إذا كان في منطقة مقيدة (تشغل دورين) 
+                    # التنسيق المطلوب: D<ID>-<connection>
+                    if curr.zone_type == ZoneTypes.RESTRICTED and curr == prev:
+                        # هذا يمثل الدور الأول من الحركة للمنطقة المقيدة (في الوصلة)
+                        dest_zone = drone.path[t+1] if t+1 < len(drone.path) else curr
+                        current_turn_moves.append(f"{drone.id}-{prev.name}-{dest_zone.name}")
+                    
+                    elif curr != prev: # تحرك فعلي
+                        if curr == self.graph.end_zone:
+                            # طباعة الحركة الأخيرة للهدف ثم التوقف عن تتبعه 
+                            current_turn_moves.append(f"{drone.id}-{curr.name}")
+                        elif curr != self.graph.start_zone:
+                            current_turn_moves.append(f"{drone.id}-{curr.name}")
+            
+            if current_turn_moves:
+                print(" ".join(current_turn_moves))

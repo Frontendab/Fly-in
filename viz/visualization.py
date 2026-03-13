@@ -58,7 +58,7 @@ class VisualizeSimulation:
         self.space_drones: Dict[Drone, pygame.Surface] = {}
         self.plus_zone_types = (10, 105)
         self.plus_drone_types = (15, 40)
-        self.speed_drones = 5
+        self.speed_drones = 4
         self.current_sim_turns = 0
 
     def run(self, graph: Graph):
@@ -87,6 +87,7 @@ class VisualizeSimulation:
         # TODO: TESTING ALGORITHM OF A*(A-STAR)
         pathfinder = PathFinder(graph)
         pathfinder.a_star_search()
+        pathfinder.generate_output_trace()
 
         running = True
         while running:
@@ -266,7 +267,7 @@ class VisualizeSimulation:
                 if target.zone_type == ZoneTypes.RESTRICTED:
                     speed /= 3
                 if target.zone_type == ZoneTypes.PRIORITY:
-                    speed += 2
+                    speed += 5
                 if distance <= speed:
                     drone.current_x = target_x
                     drone.current_y = target_y
@@ -381,10 +382,6 @@ class VisualizeSimulation:
         self.max_y = max_y
         self.start_x = (self.w_width - scale_width) // 2
         self.start_y = (self.w_height - scale_height) // 2
-
-        print(
-            f"WIDTH={screen_with}, HEIGHT={screen_height}"
-        )
 
     def change_size_image(self, name_image: str, size: str) -> None:
         if name_image == NameImages.HUB:

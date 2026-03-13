@@ -1,6 +1,6 @@
 from typing import Dict, List, Any
 from abc import ABC, abstractmethod
-from sys import exit
+from sys import exit, stderr
 
 
 class Error(ABC):
@@ -41,6 +41,6 @@ class PydanticError(Error):
         for error in errors:
             print(
                 f"Field: {error.get("field")}, input: {error.get("input")}" +
-                f",  error: {error.get("msg")}"
+                f",  error: {error.get("msg")}", file=stderr
             )
-        exit(1)
+        exit(2)
