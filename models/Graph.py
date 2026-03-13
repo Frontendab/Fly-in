@@ -1,6 +1,6 @@
 from .Zone import Zone, ZoneTypes, ValidateZone
 from .Connection import Connection, ValidateConnection
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 from .Drone import ValidateDrone, Drone
 
 
@@ -8,18 +8,18 @@ class Graph:
     def __init__(self) -> None:
         self.zones: Dict[str, Zone] = {}
         self.connections: Dict[str, List[Connection]] = {}
-        self.start_zone: Zone | Dict[Any, Any] = {}
-        self.end_zone: Zone | Dict[Any, Any] = {}
+        self.start_zone: Zone = {}
+        self.end_zone: Zone = {}
         self.drones: Dict[str, Drone] = {}
 
-    def get_zone(self, zone_name: str) -> Zone | None:
+    def get_zone(self, zone_name: str) -> Zone:
         take_zone: Zone | None = self.zones.get(zone_name)
 
-        if isinstance(take_zone, Zone):
-            if self.start_zone.name == zone_name:
-                return self.start_zone
-            elif self.end_zone.name == zone_name:
-                return self.end_zone
+        if self.start_zone.name == zone_name:
+            return self.start_zone
+        elif self.end_zone.name == zone_name:
+            return self.end_zone
+
         return take_zone
 
     def get_connection(self, connection_name: str) -> Connection:
