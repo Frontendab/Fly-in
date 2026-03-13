@@ -247,12 +247,10 @@ class FileParser:
                     f"{ConfigKeyTypes.END.value} doesn't exist!"
                 )
 
-        start_max = self.start_zone.get("metadata").get("max_drones")
-        end_max = self.end_zone.get("metadata").get("max_drones")
+        start_max = self.start_zone.get("metadata").get("max_drones", 1)
+        end_max = self.end_zone.get("metadata").get("max_drones", 1)
 
-        if (
-            (start_max and end_max)
-            and (start_max < self.nb_drones or end_max < self.nb_drones)):
+        if start_max < self.nb_drones or end_max < self.nb_drones:
             display_errors_msg(
                 "'max_drones' in start/end zones must be qual or greater than 'nb_drones'!"
             )
