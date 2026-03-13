@@ -264,9 +264,9 @@ class VisualizeSimulation:
 
                 speed = self.speed_drones * self.dynamic_scale
                 if target.zone_type == ZoneTypes.RESTRICTED:
-                    speed /= 2
+                    speed /= 3
                 if target.zone_type == ZoneTypes.PRIORITY:
-                    speed += 3
+                    speed += 2
                 if distance <= speed:
                     drone.current_x = target_x
                     drone.current_y = target_y

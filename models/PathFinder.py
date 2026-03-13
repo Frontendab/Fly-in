@@ -111,6 +111,14 @@ class PathFinder:
             else:
                 t += 1
 
+    def __calc_h_distance(self, zone: Zone) -> int:
+        return (
+            dist(
+                (zone.x, zone.y),
+                (self.graph.end_zone.x, self.graph.end_zone.y),
+            )
+        )
+
     def a_star_search(self) -> None:
         self.zone_occupancy.clear()
         self.edge_occupancy.clear()
@@ -128,11 +136,3 @@ class PathFinder:
             drone.path = path
             if not path:
                 print(f"Warning: No path found for {drone.id}")
-
-    def __calc_h_distance(self, zone: Zone) -> int:
-        return (
-            dist(
-                (zone.x, zone.y),
-                (self.graph.end_zone.x, self.graph.end_zone.y),
-            )
-        )
