@@ -4,7 +4,7 @@ from models import (
     Graph, Zone, ZoneTypes,
     Drone, PathFinder
 )
-from typing import Dict, Tuple
+from typing import Dict
 from enum import Enum
 from math import hypot
 
@@ -87,7 +87,7 @@ class VisualizeSimulation:
         # TODO: TESTING ALGORITHM OF A*(A-STAR)
         pathfinder = PathFinder(graph)
         pathfinder.a_star_search()
-        pathfinder.generate_output_trace()
+        # pathfinder.generate_output_trace()
 
         running = True
         while running:
@@ -312,7 +312,6 @@ class VisualizeSimulation:
     def initialize_visualization(self, graph: Graph) -> None:
 
         screen_with = self.pygame_info.current_w
-        screen_height = self.pygame_info.current_h
 
         if screen_with < 3000:
 

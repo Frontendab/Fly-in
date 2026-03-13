@@ -18,9 +18,6 @@ class ValidateConnection(BaseModel):
         description="Maximum drones that can traverse this \
             connection simultaneously"
     )
-    # current_flow: int = Field(
-    #     0, ge=0, description="To track the flow drones"
-    # )
 
 
 class Connection:
@@ -31,7 +28,7 @@ class Connection:
     ) -> None:
         self.zone_a: Zone = zone_a
         self.zone_b: Zone = zone_b
-        self.max_link_capacity: int = max_link_capacity
+        self.max_link_capacity: int | None = max_link_capacity
         self.current_flow: int = 0
 
     def initialize_connect(self) -> None:

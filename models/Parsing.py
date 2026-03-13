@@ -252,7 +252,8 @@ class FileParser:
 
         if start_max < self.nb_drones or end_max < self.nb_drones:
             display_errors_msg(
-                "'max_drones' in start/end zones must be qual or greater than 'nb_drones'!"
+                "'max_drones' in start/end zones must be qual or " +
+                "greater than 'nb_drones'!"
             )
 
         return {

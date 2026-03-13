@@ -57,3 +57,6 @@ lint:
 # ? Lint strict the program
 lint-strict:
 	@$(FLAKE8) . --exclude $(VENV) & $(MYPY) . $(MYPY_FLAGS) --exclude $(VENV) --strict
+
+
+.PHONY: all install run debug clean lint lint-strict
