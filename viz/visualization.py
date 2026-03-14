@@ -88,7 +88,7 @@ class VisualizeSimulation:
         pathfinder = PathFinder(graph)
         pathfinder.a_star_search()
         # TODO: I have to print output format
-        # pathfinder.generate_output_trace()
+        pathfinder.generate_output()
 
         running = True
         while running:

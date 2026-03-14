@@ -137,3 +137,6 @@ class PathFinder:
             drone.path = path
             if not path:
                 print(f"Warning: No path found for {drone.id}")
+
+    def generate_output(self) -> None:
+        pass

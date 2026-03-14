@@ -5,6 +5,7 @@ import sys
 from utils import initialize_graph
 
 
+# TODO: I have to hide pygame support
 # TODO: I have to improve caching errors
 # TODO: I have to add docstring for all methods, classes, functions
 
