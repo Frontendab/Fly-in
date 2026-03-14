@@ -18,7 +18,6 @@ class ValidateDrone(BaseModel):
     target_zone: List[Zone] = Field(
         description="Target zone of the drone"
     )
-
     departure_turn: int = Field(
         description="Departure turn of the current drone"
     )
@@ -39,12 +38,12 @@ class ValidateDrone(BaseModel):
 
 class Drone:
     def __init__(
-        self, id: str, current_zone: Zone, target_zone: Zone,
+        self, id: str, current_zone: Zone, target_zone: List[Zone],
         departure_turn: int
     ) -> None:
         self.id: str = id
         self.current_zone: Zone = current_zone
-        self.target_zone: Zone = target_zone
+        self.target_zone: List[Zone] = target_zone
         self.current_x: int = current_zone.x
         self.current_y: int = current_zone.y
         self.path: List[Zone] = []

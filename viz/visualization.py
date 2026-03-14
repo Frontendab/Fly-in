@@ -4,7 +4,7 @@ from models import (
     Graph, Zone, ZoneTypes,
     Drone, PathFinder
 )
-from typing import Dict, Tuple
+from typing import Dict, Tuple, cast
 from enum import Enum
 from math import hypot
 
@@ -34,7 +34,7 @@ class VisualizeSimulation:
         self.image_path_restricted = "assets/restricted.png"
         self.image_path_blocked = "assets/blocked.png"
         self.image_path_drone = "assets/drone.png"
-        self.drone_img: pygame.Surface = pygame.Surface
+        self.drone_img: pygame.Surface = pygame.Surface((32, 32))
         self.min_x = 0
         self.min_y = 0
         self.max_x = 0
@@ -57,7 +57,6 @@ class VisualizeSimulation:
         self.size_type_zones = (25, 25)
         self.angle = 0
         self.clock = pygame.time.Clock()
-        self.space_drones: Dict[Drone, pygame.Surface] = {}
         self.plus_zone_types = (10, 105)
         self.plus_drone_types = (15, 40)
         self.speed_drones = 4
@@ -146,11 +145,16 @@ class VisualizeSimulation:
 
         for zone in self.list_zones.values():
 
-            color: Tuple[int, int, int, int] | None = (
-                zone.color if zone.color else THECOLORS.get("white")
-            )
+            color_val = zone.color
+            color: Tuple[int, int, int, int] | str | None = color_val
 
-            if color:
+            if isinstance(color_val, str):
+                color = cast(
+                    Tuple[int, int, int, int],
+                    THECOLORS.get(color_val.lower())
+                )
+
+            if isinstance(color, tuple) and color:
                 a, b, c, d = color
                 new_a = int(a * 0.6 + 255 * 0.3)
                 new_b = int(b * 0.6 + 255 * 0.3)

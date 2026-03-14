@@ -37,7 +37,7 @@ class ValidateZone(BaseModel):
     )
 
     @field_validator('color', mode="after")
-    def initialize_color(cls, color: str) -> object:
+    def initialize_color(cls, color: str) -> tuple | str | None:
         if isinstance(color, tuple):
             return color
 

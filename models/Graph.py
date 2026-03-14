@@ -8,8 +8,8 @@ class Graph:
     def __init__(self) -> None:
         self.zones: Dict[str, Zone] = {}
         self.connections: Dict[str, Connection] = {}
-        self.start_zone: Zone = {}
-        self.end_zone: Zone = {}
+        self.start_zone: Zone = Zone("Placeholder", 0, 0)
+        self.end_zone: Zone = Zone("Placeholder", 0, 0)
         self.drones: Dict[str, Drone] = {}
 
     def get_zone(self, zone_name: str) -> Zone | None:
