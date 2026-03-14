@@ -138,14 +138,13 @@ class PathFinder:
             if not path:
                 print(f"Warning: No path found for {drone.id}")
 
-    # TODO: I have to complete print output
     def generate_output(self) -> None:
         max_turns = 0
-        current_turn_moves = []
         for drone in self.graph.drones.values():
             max_turns = max(max_turns, len(drone.path))
 
         for t in range(1, max_turns):
+            current_turn_moves = []
             for drone in self.graph.drones.values():
                 if t < len(drone.path):
                     prev = drone.path[t-1]
@@ -164,5 +163,7 @@ class PathFinder:
                             or (curr != self.graph.start_zone)
                         ):
                             current_turn_moves.append(
-                                f"{drone.id}-{drone.name}"
+                                f"{drone.id}-{curr.name}"
                             )
+            if current_turn_moves:
+                print(" ".join(current_turn_moves))
