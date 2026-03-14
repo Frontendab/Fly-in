@@ -5,6 +5,9 @@ import sys
 from utils import initialize_graph
 
 
+# TODO: I have to improve caching errors
+
+
 if __name__ == "__main__":
     argv = sys.argv
 
@@ -29,8 +32,6 @@ if __name__ == "__main__":
         error = PydanticError(e.errors())
         format_result = error.format_errors()
         error.display_errors(format_result)
-
-    # TODO: I have to start draw the zones with edges in the pygame hh
 
     visualize = VisualizeSimulation()
     visualize.initialize_visualization(graph)

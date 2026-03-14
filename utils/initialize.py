@@ -4,8 +4,6 @@ from typing import Dict, Any
 
 def initialize_graph(data: Dict[str, Any], graph: Graph) -> None:
 
-    # TODO: I have to improve this function
-
     start = data.get(ConfigKeyTypes.START.value)
     if start:
         metadata = start.get("metadata")

@@ -85,9 +85,9 @@ class VisualizeSimulation:
 
         self.__initialize_drone_start(graph)
 
-        # TODO: TESTING ALGORITHM OF A*(A-STAR)
         pathfinder = PathFinder(graph)
         pathfinder.a_star_search()
+        # TODO: I have to print output format
         # pathfinder.generate_output_trace()
 
         running = True
