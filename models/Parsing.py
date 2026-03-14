@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 from re import match
 from enum import Enum
 
@@ -41,7 +41,7 @@ class FileParser:
             for num, line in enumerate(lines, start=1):
                 connection = {}
                 hub = {}
-                metadata_dict = {}
+                metadata_dict: Dict[str, Union[str, int]] = {}
                 if line[-1] == '\n':
                     line = line[:-1]
 
@@ -54,7 +54,8 @@ class FileParser:
                 if ConfigKeyTypes.NB.value in line:
                     is_match = match(r"^nb_drones: [0-9]+$", line)
                     finding[ConfigKeyTypes.NB.value] += 1
-                    if finding.get(ConfigKeyTypes.NB.value) > 1:
+                    count_find_nb_drones = finding.get(ConfigKeyTypes.NB.value)
+                    if count_find_nb_drones and count_find_nb_drones > 1:
                         display_errors_msg(
                             f"Line {num}: Duplicate {ConfigKeyTypes.NB.value}"
                         )
@@ -82,7 +83,10 @@ class FileParser:
                         )
                         type_hub = ConfigKeyTypes.START.value
                         finding[ConfigKeyTypes.START.value] += 1
-                        if finding.get(ConfigKeyTypes.START.value) > 1:
+                        count_find_start = finding.get(
+                            ConfigKeyTypes.START.value
+                        )
+                        if count_find_start and count_find_start > 1:
                             display_errors_msg(
                                 f"Line {num}: Duplicate " +
                                 f"{ConfigKeyTypes.START.value}"
@@ -94,7 +98,8 @@ class FileParser:
                         )
                         type_hub = ConfigKeyTypes.END.value
                         finding[ConfigKeyTypes.END.value] += 1
-                        if finding.get(ConfigKeyTypes.END.value) > 1:
+                        count_find_end = finding.get(ConfigKeyTypes.END.value)
+                        if count_find_end and count_find_end > 1:
                             display_errors_msg(
                                 f"Line {num}: Duplicate " +
                                 F"{ConfigKeyTypes.END.value}"
@@ -122,9 +127,9 @@ class FileParser:
                             "input file and try again."
                         )
 
-                    if type_hub != ConfigKeyTypes.CONN.value:
+                    if type_hub != ConfigKeyTypes.CONN.value and is_match:
                         name, x, y, metadata = is_match.groups()
-                    elif type_hub == ConfigKeyTypes.CONN.value:
+                    elif type_hub == ConfigKeyTypes.CONN.value and is_match:
                         name_a, name_b, metadata = is_match.groups()
 
                     if metadata:
@@ -138,9 +143,10 @@ class FileParser:
                                 " format!"
                             )
 
-                        metadata_items = (
-                            is_format_metadata.group()[1:-1].split(" ")
-                        )
+                        if is_format_metadata:
+                            metadata_items = (
+                                is_format_metadata.group()[1:-1].split(" ")
+                            )
 
                         for meta in metadata_items:
                             if meta:
@@ -247,8 +253,12 @@ class FileParser:
                     f"{ConfigKeyTypes.END.value} doesn't exist!"
                 )
 
-        start_max = self.start_zone.get("metadata").get("max_drones", 1)
-        end_max = self.end_zone.get("metadata").get("max_drones", 1)
+        metadata_start = self.start_zone.get("metadata")
+        if metadata_start:
+            start_max = metadata_start.get("max_drones", 1)
+        metadata_end = self.start_zone.get("metadata")
+        if metadata_end:
+            end_max = metadata_end.get("max_drones", 1)
 
         if start_max < self.nb_drones or end_max < self.nb_drones:
             display_errors_msg(
@@ -335,7 +345,7 @@ class FileParser:
 
         return False
 
-    def is_exist_zone(self, name: str) -> bool:
+    def is_exist_zone(self, name: str | None) -> bool:
         if self.start_zone.get("name") == name:
             return True
         elif self.end_zone.get("name") == name:

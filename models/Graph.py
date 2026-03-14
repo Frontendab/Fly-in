@@ -7,12 +7,12 @@ from .Drone import ValidateDrone, Drone
 class Graph:
     def __init__(self) -> None:
         self.zones: Dict[str, Zone] = {}
-        self.connections: Dict[str, List[Connection]] = {}
+        self.connections: Dict[str, Connection] = {}
         self.start_zone: Zone = {}
         self.end_zone: Zone = {}
         self.drones: Dict[str, Drone] = {}
 
-    def get_zone(self, zone_name: str) -> Zone:
+    def get_zone(self, zone_name: str) -> Zone | None:
         take_zone: Zone | None = self.zones.get(zone_name)
 
         if self.start_zone.name == zone_name:
@@ -22,10 +22,10 @@ class Graph:
 
         return take_zone
 
-    def get_connection(self, connection_name: str) -> Connection:
+    def get_connection(self, connection_name: str) -> Connection | None:
         return self.connections.get(connection_name, None)
 
-    def get_drone(self, id: str) -> Drone:
+    def get_drone(self, id: str) -> Drone | None:
         return self.drones.get(id, None)
 
     def create_zone(
@@ -36,7 +36,7 @@ class Graph:
     ) -> Zone:
         valid_zone = ValidateZone(
             name=name, x=x, y=y, zone_type=zone_type, max_drones=max_drones,
-            color=color, current_drones=current_drones
+            color=color
         )
         zone = Zone(
             valid_zone.name, valid_zone.x, valid_zone.y, valid_zone.zone_type,
@@ -61,10 +61,10 @@ class Graph:
     ) -> Drone:
         valid_drone = ValidateDrone(
             id=f"D{id}", current_zone=current_zone,
-            target_zone=target_zone
+            target_zone=target_zone, departure_turn=(id * 45)
         )
         drone = Drone(
             valid_drone.id, valid_drone.current_zone,
-            valid_drone.target_zone
+            valid_drone.target_zone, valid_drone.departure_turn
         )
         return drone

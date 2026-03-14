@@ -3,7 +3,7 @@ from pydantic import (
 )
 from pydantic_core import PydanticCustomError
 from enum import Enum
-from typing import Optional, Union, List, Dict
+from typing import Optional, Union, List, Dict, Tuple
 from pygame.colordict import THECOLORS
 
 
@@ -28,7 +28,7 @@ class ValidateZone(BaseModel):
         ZoneTypes.NORMAL,
         description="Type of the zone, default normal"
     )
-    color: Optional[Union[str, tuple, None]] = Field(
+    color: Optional[Union[str, None]] = Field(
         None, min_length=3, description="Color of the zone"
     )
     max_drones: Optional[int] = Field(
@@ -37,7 +37,7 @@ class ValidateZone(BaseModel):
     )
 
     @field_validator('color', mode="after")
-    def initialize_color(color: str) -> object:
+    def initialize_color(cls, color: str) -> object:
         if isinstance(color, tuple):
             return color
 
@@ -59,18 +59,14 @@ class Zone:
     def __init__(
         self, name: str, x: int, y: int,
         zone_type: Optional[ZoneTypes] = ZoneTypes.NORMAL,
-        max_drones: Optional[int] = 1, color: Optional[str] = None
+        max_drones: Optional[int] = 1, color: Optional[str] = ""
     ) -> None:
-        valid_zone = ValidateZone(
-            name=name, x=x, y=y, zone_type=zone_type, max_drones=max_drones,
-            color=color
-        )
-        self.name: str = valid_zone.name
-        self.x: int = valid_zone.x
-        self.y: int = valid_zone.y
-        self.zone_type: ZoneTypes | None = valid_zone.zone_type
-        self.max_drones: int | None = valid_zone.max_drones
-        self.color: Union[str, tuple, None] = valid_zone.color
+        self.name: str = name
+        self.x: int = x
+        self.y: int = y
+        self.zone_type: ZoneTypes | None = zone_type
+        self.max_drones: int | None = max_drones
+        self.color: Tuple[int, int, int, int] | str | None = color
         self.target_zone: List[Zone] = []
         self.contain_zones: int = 0
         self.g: int = self.get_cost(self.zone_type)

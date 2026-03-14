@@ -19,8 +19,12 @@ class ValidateDrone(BaseModel):
         description="Target zone of the drone"
     )
 
+    departure_turn: int = Field(
+        description="Departure turn of the current drone"
+    )
+
     @model_validator(mode="after")
-    def check_valid_id(self) -> object:
+    def check_valid_id(self) -> 'ValidateDrone':
         if not self.id.startswith("D"):
             raise PydanticCustomError(
                 "invalid_color",
@@ -35,7 +39,8 @@ class ValidateDrone(BaseModel):
 
 class Drone:
     def __init__(
-        self, id: str, current_zone: Zone, target_zone: Zone
+        self, id: str, current_zone: Zone, target_zone: Zone,
+        departure_turn: int
     ) -> None:
         self.id: str = id
         self.current_zone: Zone = current_zone
@@ -44,3 +49,4 @@ class Drone:
         self.current_y: int = current_zone.y
         self.path: List[Zone] = []
         self.target_index: int = 0
+        self.departure_turn: int = departure_turn

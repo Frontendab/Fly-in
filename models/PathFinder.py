@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 from .Drone import Drone
 from .Zone import Zone, ZoneTypes
 from .Graph import Graph
@@ -12,12 +12,16 @@ class PathFinder:
     def __init__(self, graph: Graph) -> None:
         self.graph = graph
         self.counter = count()
-        self.zone_occupancy = defaultdict(lambda: defaultdict(int))
-        self.edge_occupancy = defaultdict(lambda: defaultdict(int))
+        self.zone_occupancy: Dict[int, Dict[str, int]] = (
+            defaultdict(lambda: defaultdict(int))
+        )
+        self.edge_occupancy: Dict[int, Dict[tuple, int]] = (
+            defaultdict(lambda: defaultdict(int))
+        )
 
     def get_path(
         self, drone: Drone, start: Zone, end: Zone,
-    ) -> None:
+    ) -> List[Zone]:
         open_list = [(0.0, next(self.counter), 0, start, [start])]
         visited = set()
 
@@ -108,7 +112,7 @@ class PathFinder:
             else:
                 t += 1
 
-    def __calc_h_distance(self, zone: Zone) -> int:
+    def __calc_h_distance(self, zone: Zone) -> float:
         return (
             dist(
                 (zone.x, zone.y),

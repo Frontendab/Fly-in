@@ -13,8 +13,8 @@ class ValidateConnection(BaseModel):
     zone_b: Zone = Field(
         description="Second zone to connect it with the first"
     )
-    max_link_capacity: int = Field(
-        1, ge=1,
+    max_link_capacity: Optional[int] = Field(
+        1, ge=0,
         description="Maximum drones that can traverse this \
             connection simultaneously"
     )
@@ -29,7 +29,6 @@ class Connection:
         self.zone_a: Zone = zone_a
         self.zone_b: Zone = zone_b
         self.max_link_capacity: int | None = max_link_capacity
-        self.current_flow: int = 0
 
     def initialize_connect(self) -> None:
         self.zone_a.target_zone.append(self.zone_b)

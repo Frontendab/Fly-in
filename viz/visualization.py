@@ -4,7 +4,7 @@ from models import (
     Graph, Zone, ZoneTypes,
     Drone, PathFinder
 )
-from typing import Dict
+from typing import Dict, Tuple
 from enum import Enum
 from math import hypot
 
@@ -22,7 +22,7 @@ class NameImages(Enum):
 
 
 class VisualizeSimulation:
-    def __init__(self):
+    def __init__(self) -> None:
         pygame.init()
 
         self.pygame_info = pygame.display.Info()
@@ -34,24 +34,26 @@ class VisualizeSimulation:
         self.image_path_restricted = "assets/restricted.png"
         self.image_path_blocked = "assets/blocked.png"
         self.image_path_drone = "assets/drone.png"
-        self.drone_img = ""
+        self.drone_img: pygame.Surface = pygame.Surface
         self.min_x = 0
         self.min_y = 0
         self.max_x = 0
         self.max_y = 0
-        self.dynamic_scale = 0
-        self.start_x = 0
-        self.start_y = 0
+        self.dynamic_scale: float = 0.0
+        self.start_x: float = 0.0
+        self.start_y: float = 0.0
         self.surface_width = self.w_width * 0.9
         self.surface_height = self.w_height * 0.9
         self.radius = 80
         self.spacing = 100
         self.hub_w_h = (30, 80)
         self.list_zones: Dict[str, Zone] = {}
-        self.line = {
-            "color": THECOLORS.get("lightskyblue"),
-            "border": 5
-        }
+        self.line_color: Tuple[int, int, int, int] = (
+            THECOLORS.get("lightskyblue", (
+                135, 206, 250, 255
+            ))
+        )
+        self.line_border: int = 5
         self.size_type_zones = (25, 25)
         self.angle = 0
         self.clock = pygame.time.Clock()
@@ -61,7 +63,7 @@ class VisualizeSimulation:
         self.speed_drones = 4
         self.current_sim_turns = 0
 
-    def run(self, graph: Graph):
+    def run(self, graph: Graph) -> None:
         pygame.display.set_caption("Fly-in")
         screen = pygame.display.set_mode(
             (self.w_width, self.w_height)
@@ -126,7 +128,7 @@ class VisualizeSimulation:
 
                     pygame.draw.line(
                         canvas,
-                        self.line.get("color"),
+                        self.line_color,
                         self.get_render_coords(
                             zone.x, zone.y, self.min_x, self.min_y,
                             self.start_x, self.start_y
@@ -135,7 +137,7 @@ class VisualizeSimulation:
                             target.x, target.y, self.min_x, self.min_y,
                             self.start_x, self.start_y
                         ),
-                        self.line.get("border")
+                        self.line_border
                     )
 
     def __draw_zones(self, canvas: pygame.Surface, graph: Graph) -> None:
@@ -144,28 +146,31 @@ class VisualizeSimulation:
 
         for zone in self.list_zones.values():
 
-            color = zone.color if zone.color else THECOLORS.get("white")
-
-            a, b, c, d = color
-            new_a = int(a * 0.6 + 255 * 0.3)
-            new_b = int(b * 0.6 + 255 * 0.3)
-            new_c = int(c * 0.6 + 255 * 0.3)
-
-            new_load = self.colorize(
-                load_hub_image.convert_alpha(),
-                self.hub_w_h, (new_a, new_b, new_c, d)
+            color: Tuple[int, int, int, int] | None = (
+                zone.color if zone.color else THECOLORS.get("white")
             )
 
-            hub_image = pygame.transform.scale(
-                new_load,
-                self.hub_w_h
-            )
+            if color:
+                a, b, c, d = color
+                new_a = int(a * 0.6 + 255 * 0.3)
+                new_b = int(b * 0.6 + 255 * 0.3)
+                new_c = int(c * 0.6 + 255 * 0.3)
 
-            current_pos = self.__get_pos(
-                zone.x, zone.y
-            )
+                new_load = self.colorize(
+                    load_hub_image.convert_alpha(),
+                    self.hub_w_h, (new_a, new_b, new_c, d)
+                )
 
-            canvas.blit(hub_image, current_pos)
+                hub_image = pygame.transform.scale(
+                    new_load,
+                    self.hub_w_h
+                )
+
+                current_pos = self.__get_pos(
+                    zone.x, zone.y
+                )
+
+                canvas.blit(hub_image, current_pos)
 
     def __draw_type_zone(self, canvas: pygame.Surface, graph: Graph) -> None:
 
@@ -203,12 +208,9 @@ class VisualizeSimulation:
                 )
                 canvas.blit(hub_image, current_pos)
 
-    def get_drone(self, id: str) -> pygame.Surface:
-        return self.space_drones.get(id, None)
-
     def get_render_coords(
         self, x: int, y: int, min_x: int, min_y: int,
-        max_x: int, max_y: int
+        max_x: float, max_y: float
     ) -> tuple:
         pos = self.__get_pos(x, y)
         return (
@@ -216,7 +218,9 @@ class VisualizeSimulation:
             pos[1] + self.hub_w_h[1] // 2
         )
 
-    def colorize(self, image: object, size: tuple, color: tuple) -> object:
+    def colorize(
+        self, image: pygame.Surface, size: tuple, color: tuple
+    ) -> pygame.Surface:
         color_surface = pygame.Surface(image.get_size()).convert_alpha()
         color_surface.fill(color)
 
@@ -228,7 +232,7 @@ class VisualizeSimulation:
 
     def __rotate_image(
         self, canvas: pygame.Surface, draw_x: int, draw_y: int
-    ) -> object:
+    ) -> pygame.Surface:
 
         rotate_image = pygame.transform.rotate(
             self.drone_img,
@@ -382,7 +386,9 @@ class VisualizeSimulation:
         self.start_x = (self.w_width - scale_width) // 2
         self.start_y = (self.w_height - scale_height) // 2
 
-    def change_size_image(self, name_image: str, size: str) -> None:
+    def change_size_image(
+        self, name_image: NameImages, size: SizeImages
+    ) -> None:
         if name_image == NameImages.HUB:
             if size == SizeImages.BIG:
                 self.hub_w_h = (68, 175)
