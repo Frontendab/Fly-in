@@ -1,5 +1,4 @@
-import pygame
-from pygame.colordict import THECOLORS
+from os import environ
 from models import (
     Graph, Zone, ZoneTypes,
     Drone, PathFinder
@@ -7,6 +6,11 @@ from models import (
 from typing import Dict, Tuple, cast
 from enum import Enum
 from math import hypot
+
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+
+import pygame # noqa
+from pygame.colordict import THECOLORS # noqa
 
 
 class SizeImages(Enum):

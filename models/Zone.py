@@ -1,10 +1,14 @@
+from os import environ
 from pydantic import (
     BaseModel, Field, field_validator
 )
 from pydantic_core import PydanticCustomError
 from enum import Enum
 from typing import Optional, Union, List, Dict, Tuple
-from pygame.colordict import THECOLORS
+
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+
+from pygame.colordict import THECOLORS # noqa
 
 
 class ZoneTypes(Enum):
