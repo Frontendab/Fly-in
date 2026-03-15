@@ -12,6 +12,13 @@ from pygame.colordict import THECOLORS # noqa
 
 
 class ZoneTypes(Enum):
+    """ZoneTypes: Is Enum class that contain const variables
+        to use them in any part of project
+
+    Args:
+        Enum (_type_): It Enum class we inherits from it
+            to be this class as enum's class
+    """
     NORMAL = "normal"
     BLOCKED = "blocked"
     RESTRICTED = "restricted"
@@ -19,6 +26,14 @@ class ZoneTypes(Enum):
 
 
 class ValidateZone(BaseModel):
+    """ValidateZone is class to check if
+        the Zone information is valid or not with raise errors
+
+    Args:
+        BaseModel: It inherits from BaseModel's pydantic to be
+            validator's class
+    """
+
     name: str = Field(
         min_length=4, description="Name of the zone"
     )
@@ -42,6 +57,19 @@ class ValidateZone(BaseModel):
 
     @field_validator('color', mode="after")
     def initialize_color(cls, color: str) -> tuple | str | None:
+        """initialize_color: Is used to convert
+            the color's name to RGBA's format
+
+        Args:
+            color (str): Color's name
+
+        Raises:
+            PydanticCustomError: is used to raise custom pydantic's error
+
+        Returns:
+            tuple | str | None: Return the tuple of color's name,
+                otherwise return(it or None)
+        """
         if isinstance(color, tuple):
             return color
 

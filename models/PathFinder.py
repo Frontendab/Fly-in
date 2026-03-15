@@ -9,7 +9,14 @@ from collections import defaultdict
 
 
 class PathFinder:
+    """PathFinder the class is responsible about
+        find the best path from the start to the end
+        and the output of drone movements
+    """
+
     def __init__(self, graph: Graph) -> None:
+        """__init__ is use to assign values to the current instance
+        """
         self.graph = graph
         self.counter = count()
         self.zone_occupancy: Dict[int, Dict[str, int]] = (
@@ -22,6 +29,19 @@ class PathFinder:
     def get_path(
         self, drone: Drone, start: Zone, end: Zone,
     ) -> List[Zone]:
+        """get_path: Is used to find the best path from the start to end
+
+        Args:
+            drone (Drone): the current drone you want find
+                it pass to move on it
+            start (Zone): The start zone you want find the path from it
+            end (Zone): The end zone you want find the path to it
+
+        Returns:
+            List[Zone]: Return the full path from the start zone to the end,
+                otherwise return []
+        """
+
         open_list = [(0.0, next(self.counter), 0, start, [start])]
         visited = set()
 
@@ -80,12 +100,36 @@ class PathFinder:
         return []
 
     def __is_zone_available(self, zone: Zone, turn: int) -> bool:
+        # TODO: I have to write a return msg
+        """__is_zone_available: Is used to check if the current zone
+            is available it or it contain the max of drones
+
+        Args:
+            zone (Zone): the zone you want check it
+            turn (int): the turn you want check if the zone available on it
+
+        Returns:
+            bool: 
+        """
         if zone == self.graph.start_zone or zone == self.graph.end_zone:
             return True
-        max_capacity = getattr(zone, "max_drones", 1)
+        max_capacity = getattr(zone, "max_drones")
         return self.zone_occupancy[turn][zone.name] < max_capacity
 
     def __is_link_available(self, z1: Zone, z2: Zone, turn: int) -> bool:
+        # TODO: I have to write a return msg
+        """__is_link_available: Is used to check if the current link
+            connection between two zones is available it
+            or it contain the max of link capacity
+
+        Args:
+            z1 (Zone): the first zone is connected with second
+            z2 (Zone): the second zone is connected with first
+            turn (int): the turn you want check if the link available on it
+
+        Returns:
+            bool: 
+        """
         edge = tuple(sorted((z1.name, z2.name)))
         connection = self.graph.get_connection(
             f"{z1.name}-{z2.name}"
@@ -94,6 +138,7 @@ class PathFinder:
         return self.edge_occupancy[turn][edge] < max_link
 
     def __reserve_path(self, path: List[Zone]) -> None:
+        # TODO: I have to write docstring for this function
         t = 0
         for i in range(len(path)):
             current_zone = path[i]
@@ -113,6 +158,17 @@ class PathFinder:
                 t += 1
 
     def __calc_h_distance(self, zone: Zone) -> float:
+        """__calc_h_distance: Is used to calculate the h(Approximate distance)
+            between the current zone and the end's zone(goal)
+
+        Args:
+            zone (Zone): the current zone you want calculate
+                h(Approximate distance) to it from the end's zone(goal)
+
+        Returns:
+            float: Return the (Euclidean distance) between two points
+                current zone and end's zone(goal).
+        """
         return (
             dist(
                 (zone.x, zone.y),
@@ -121,6 +177,8 @@ class PathFinder:
         )
 
     def a_star_search(self) -> None:
+        """a_star_search: Is used to start the algorithm's executing.
+        """
         self.zone_occupancy.clear()
         self.edge_occupancy.clear()
 
@@ -139,6 +197,10 @@ class PathFinder:
                 print(f"Warning: No path found for {drone.id}")
 
     def generate_output(self) -> None:
+        """generate_output: It used to count the max turn
+            and print's drone movements
+        """
+
         max_turns = 0
         for drone in self.graph.drones.values():
             max_turns = max(max_turns, len(drone.path))

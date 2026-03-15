@@ -4,6 +4,13 @@ from enum import Enum
 
 
 class ConfigKeyTypes(Enum):
+    """ConfigKeyTypes: Is Enum class that contain const variables
+        to use them in any part of project
+
+    Args:
+        Enum (_type_): It Enum class we inherits from it
+            to be this class as enum's class
+    """
     NB = "nb_drones:"
     START = "start_hub:"
     END = "end_hub:"
@@ -12,7 +19,11 @@ class ConfigKeyTypes(Enum):
 
 
 class FileParser:
+    """FileParser is the class responsible on the parsing
+    """
     def __init__(self, file_name: str) -> None:
+        """__init__ is use to assign values to the current instance
+        """
         self.file_name: str = file_name
         self.nb_drones: int = 0
         self.start_zone: Dict[str, Any] = {}
@@ -23,6 +34,12 @@ class FileParser:
         self.__metadata_connection = ("max_link_capacity")
 
     def parse(self) -> Dict[str, Any]:
+        """parse's method is used to parsing and check
+            all the content of the file name
+
+        Returns:
+            Dict[str, Any]: return Dict of the file's data after paring it
+        """
         from utils import raise_errors_msg
 
         finding = {
@@ -287,6 +304,16 @@ class FileParser:
         }
 
     def is_duplicate_zone(self, hub: Dict[str, Any]) -> bool | str:
+        """is_duplicate_zone: Is used to check if the hub's zone is duplicated
+
+        Args:
+            hub (Dict[str, Any]): the zone you want check it is duplicated
+                or not
+
+        Returns:
+            bool | str: Return(False) if the zone doesn't duplicated
+                otherwise return helpful message to display it to user
+        """
 
         if self.start_zone:
             if self.start_zone.get("name") == hub.get("name"):
@@ -322,6 +349,17 @@ class FileParser:
         return False
 
     def is_duplicate_metadata_key(self, metadata: List[str]) -> bool:
+        # TODO: I think i have to improve this method how i can check if is duplicated key
+        # Todo: Because if there are any key in the start and in the end it need to be detected
+        """is_duplicate_metadata_key: We use it to check if
+            they metadata's keys duplicated or not
+
+        Args:
+            metadata (List[str]): Metadata that you want check it
+
+        Returns:
+            bool: Return False not found any duplicated otherwise return True
+        """
         pre_key, _ = metadata[0].split("=", 1)
         for item in metadata[1:]:
             if item:
@@ -335,6 +373,17 @@ class FileParser:
     def is_duplicate_connection(
         self, connection: Dict[str, Any]
     ) -> bool | str:
+        """is_duplicate_connection: Is it check if there are
+            any duplicate connection
+
+        Args:
+            connection (Dict[str, Any]): the connection you want check
+                it is duplicated
+
+        Returns:
+            bool | str: Return(False) if the connection doesn't duplicated
+                otherwise return helpful message to display it to user
+        """
 
         for conn in self.connections:
             if (conn.get("name_a") == connection.get("name_a")
@@ -358,6 +407,14 @@ class FileParser:
         return False
 
     def is_exist_zone(self, name: str | None) -> bool:
+        """is_exist_zone: It used to check if the current zone is exist
+
+        Args:
+            name (str | None): the name of the zone
+
+        Returns:
+            bool: Return True if is't found otherwise return False
+        """
         if self.start_zone.get("name") == name:
             return True
         elif self.end_zone.get("name") == name:
