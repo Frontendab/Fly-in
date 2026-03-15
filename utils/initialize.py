@@ -8,6 +8,14 @@ from pygame.colordict import THECOLORS # noqa
 
 
 def initialize_graph(data: Dict[str, Any], graph: Graph) -> None:
+    """initialize_graph: Is used to initialize the graph withing create zones
+        and store them inside it
+
+    Args:
+        data (Dict[str, Any]): the result of the parsing
+        graph (Graph): the graph's class to access on it is attribute
+            and methods if when need
+    """
 
     default_color = "white"
 
