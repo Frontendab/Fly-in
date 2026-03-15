@@ -6,6 +6,7 @@ from utils import initialize_graph, display_errors_msg
 
 
 # TODO: I have to add docstring for all methods, classes, functions
+# TODO: I have to test all maps with config.txt file
 # TODO: I have to verify max_link_capacity
 # TODO: I have to write README.MD file
 

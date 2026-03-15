@@ -14,11 +14,25 @@ from pygame.colordict import THECOLORS # noqa
 
 
 class SizeImages(Enum):
+    """SizeImages: Is Enum class that contain const variables
+        to use them in any part of project
+
+    Args:
+        Enum (_type_): It Enum class we inherits from it
+            to be this class as enum's class
+    """
     BIG = "big"
     SMALL = "small"
 
 
 class NameImages(Enum):
+    """NameImages: Is Enum class that contain const variables
+        to use them in any part of project
+
+    Args:
+        Enum (_type_): It Enum class we inherits from it
+            to be this class as enum's class
+    """
     HUB = "hub"
     DRONE = "drone"
     SPACING = "spacing"
@@ -26,7 +40,13 @@ class NameImages(Enum):
 
 
 class VisualizeSimulation:
+    """VisualizeSimulation is class that is responsible
+        on the visualization of the window
+    """
+
     def __init__(self) -> None:
+        """__init__ is use to assign values to the current instance
+        """
         pygame.init()
 
         self.pygame_info = pygame.display.Info()
@@ -67,6 +87,14 @@ class VisualizeSimulation:
         self.current_sim_turns = 0
 
     def run(self, graph: Graph) -> None:
+        """run: It responsible about start running pygame
+            and execute draw functions
+
+        Args:
+            graph (Graph): It the responsible's class
+                about management the zones
+        """
+
         pygame.display.set_caption("Fly-in")
         screen = pygame.display.set_mode(
             (self.w_width, self.w_height)
@@ -116,6 +144,14 @@ class VisualizeSimulation:
         pygame.quit()
 
     def __draw_edges(self, canvas: pygame.Surface, graph: Graph) -> None:
+        """__draw_edges: Is we use it run draw the edges(link)
+            between the zones based on the connections
+
+        Args:
+            canvas (pygame.Surface): the screen you want to draw on it
+            graph (Graph): It the responsible's class
+                about management the zones
+        """
         list_zones = {key: value for key, value in graph.zones.items()}
         list_zones.update({
             graph.start_zone.name: graph.start_zone,
@@ -143,6 +179,13 @@ class VisualizeSimulation:
                     )
 
     def __draw_zones(self, canvas: pygame.Surface, graph: Graph) -> None:
+        """__draw_zones: Is we use it draw the zones based on their coordinates
+
+        Args:
+            canvas (pygame.Surface): the screen you want to draw on it
+            graph (Graph): It the responsible's class
+                about management the zones
+        """
 
         load_hub_image = pygame.image.load(self.image_path_hub)
 
@@ -180,6 +223,13 @@ class VisualizeSimulation:
                 canvas.blit(hub_image, current_pos)
 
     def __draw_type_zone(self, canvas: pygame.Surface, graph: Graph) -> None:
+        """__draw_type_zone: It used to draw the image based on the zone's type
+
+        Args:
+            canvas (pygame.Surface): the screen you want to draw on it
+            graph (Graph): It the responsible's class
+                about management the zones
+        """
 
         load_restricted = pygame.image.load(self.image_path_restricted)
         load_priority = pygame.image.load(self.image_path_priority)
@@ -219,6 +269,19 @@ class VisualizeSimulation:
         self, x: int, y: int, min_x: int, min_y: int,
         max_x: float, max_y: float
     ) -> tuple:
+        """_summary_
+
+        Args:
+            x (int): _description_
+            y (int): _description_
+            min_x (int): _description_
+            min_y (int): _description_
+            max_x (float): _description_
+            max_y (float): _description_
+
+        Returns:
+            tuple: _description_
+        """
         pos = self.__get_pos(x, y)
         return (
             pos[0] + self.hub_w_h[0] // 2,

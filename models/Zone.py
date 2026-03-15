@@ -11,6 +11,9 @@ environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 from pygame.colordict import THECOLORS # noqa
 
 
+# TODO: I have to complete the docstring from this file
+
+
 class ZoneTypes(Enum):
     """ZoneTypes: Is Enum class that contain const variables
         to use them in any part of project
