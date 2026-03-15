@@ -13,6 +13,9 @@ class ValidateConnection(BaseModel):
         BaseModel: It inherits from BaseModel's pydantic to be
             validator's class
     """
+
+    # ? INFO: We use model_config to create
+    # ? Custom type hint(in this case: Zone) with ValidateConnection's class
     model_config = ConfigDict(arbitrary_types_allowed=True)
     zone_a: Zone = Field(
         description="First zone to connect it with the second"
