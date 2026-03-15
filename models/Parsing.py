@@ -23,7 +23,7 @@ class FileParser:
         self.__metadata_connection = ("max_link_capacity")
 
     def parse(self) -> Dict[str, Any]:
-        from utils import display_errors_msg
+        from utils import raise_errors_msg
 
         finding = {
             ConfigKeyTypes.NB.value: 0,
@@ -34,7 +34,7 @@ class FileParser:
             lines = file.readlines()
 
             if not lines:
-                display_errors_msg(
+                raise_errors_msg(
                     "File is empty!"
                 )
 
@@ -56,13 +56,13 @@ class FileParser:
                     finding[ConfigKeyTypes.NB.value] += 1
                     count_find_nb_drones = finding.get(ConfigKeyTypes.NB.value)
                     if count_find_nb_drones and count_find_nb_drones > 1:
-                        display_errors_msg(
+                        raise_errors_msg(
                             f"Line {num}: Duplicate {ConfigKeyTypes.NB.value}"
                         )
                     if not is_match:
-                        display_errors_msg(
-                            f"Line {num}: Invalid File Format\n"
-                            "The first file must start with the following"
+                        raise_errors_msg(
+                            f"Line {num}: Invalid line Format\n"
+                            "The first line must start with the following"
                             " pattern:\n-> nb_drones: <number>\n"
                             "Please check your input file and try again."
                         )
@@ -76,9 +76,11 @@ class FileParser:
 
                     type_hub = ""
                     is_match = None
+                    pattern_hub = r"^start_hub:\s(\w+)\s(-?\d+)\s(-?\d+)"
+                    pattern_hub += r"(?:\s+\[(.*)\])?"
                     if ConfigKeyTypes.START.value in line:
                         is_match = match(
-                            r"^start_hub: (\w+) (-?\d+) (-?\d+)(?:\s+(.*))?",
+                            pattern_hub,
                             line
                         )
                         type_hub = ConfigKeyTypes.START.value
@@ -87,41 +89,43 @@ class FileParser:
                             ConfigKeyTypes.START.value
                         )
                         if count_find_start and count_find_start > 1:
-                            display_errors_msg(
+                            raise_errors_msg(
                                 f"Line {num}: Duplicate " +
                                 f"{ConfigKeyTypes.START.value}"
                             )
                     elif ConfigKeyTypes.END.value in line:
+                        pattern_end = r"^end_hub:\s(\w+)\s(-?\d+)\s(-?\d+)"
+                        pattern_end += r"(?:\s+\[(.*)\])?"
                         is_match = match(
-                            r"^end_hub: (\w+) (-?\d+) (-?\d+)(?:\s+(.*))?",
+                            pattern_end,
                             line
                         )
                         type_hub = ConfigKeyTypes.END.value
                         finding[ConfigKeyTypes.END.value] += 1
                         count_find_end = finding.get(ConfigKeyTypes.END.value)
                         if count_find_end and count_find_end > 1:
-                            display_errors_msg(
+                            raise_errors_msg(
                                 f"Line {num}: Duplicate " +
                                 F"{ConfigKeyTypes.END.value}"
                             )
                     elif ConfigKeyTypes.CONN.value in line:
                         is_match = match(
-                            r"^connection: (\w+)-(\w+)(?:\s+(.*))?",
+                            r"^connection:\s(\w+)-(\w+)(?:\s+\[(.*)\])?",
                             line
                         )
                         type_hub = ConfigKeyTypes.CONN.value
                     else:
                         is_match = match(
-                            r"^hub: (\w+) (-?\d+) (-?\d+)(?:\s+(.*))?",
+                            r"^hub:\s(\w+)\s(-?\d+)\s(-?\d+)(?:\s+\[(.*)\])?",
                             line
                         )
                         type_hub = ConfigKeyTypes.HUBS.value
 
                     if not is_match:
-                        display_errors_msg(
-                            f"Line {num}: Invalid File Format\n"
+                        raise_errors_msg(
+                            f"Line {num}: Invalid line Format\n"
                             "it must be following this pattern\n"
-                            f"-> {type_hub}: <name> <number> <number> " +
+                            f"-> {type_hub} <name> <number> <number> " +
                             "[color=green]\n"
                             "Metadata is optional, Please check your "
                             "input file and try again."
@@ -133,32 +137,34 @@ class FileParser:
                         name_a, name_b, metadata = is_match.groups()
 
                     if metadata:
-                        is_format_metadata = match(
-                            r"\[(.*)\]", metadata
+                        if (
+                            type_hub != ConfigKeyTypes.CONN.value
+                            and not line.split(" ")[3].isdigit()
+                        ):
+                            raise_errors_msg(
+                                f"Line {num}: Invalid"
+                                " metadata format!"
+                            )
+
+                        metadata_items = (
+                            metadata.split(" ")
                         )
-
-                        if not is_format_metadata:
-                            display_errors_msg(
-                                f"Line {num}: Invalid {metadata} metadata" +
-                                " format!"
-                            )
-
-                        if is_format_metadata:
-                            metadata_items = (
-                                is_format_metadata.group()[1:-1].split(" ")
-                            )
-
                         for meta in metadata_items:
                             if meta:
                                 if "=" not in meta or meta.count("=") > 1:
-                                    display_errors_msg(
+                                    raise_errors_msg(
                                         f"Line {num}: Invalid ({meta})"
                                         " metadata format!"
                                     )
                                 key, value = meta.split("=", 1)
+                                if not value:
+                                    raise_errors_msg(
+                                        f"Line {num}: Value({key}) of the " +
+                                        "key must be not empty!"
+                                    )
                                 if (type_hub != ConfigKeyTypes.CONN.value
                                         and key not in self.__metadata_zones):
-                                    display_errors_msg(
+                                    raise_errors_msg(
                                         f"Line {num}: Invalid zones's" +
                                         " metadata, " +
                                         f"expected: {self.__metadata_zones}!"
@@ -166,7 +172,7 @@ class FileParser:
                                 elif (type_hub == ConfigKeyTypes.CONN.value
                                         and
                                         key not in self.__metadata_connection):
-                                    display_errors_msg(
+                                    raise_errors_msg(
                                         f"Line {num}: Invalid connection's"
                                         " metadata, " +
                                         "expected: " +
@@ -175,10 +181,15 @@ class FileParser:
                                 metadata_dict[key] = value
                                 if "max_drones" in key:
                                     metadata_dict[key] = int(value)
-
                         if self.is_duplicate_metadata_key(metadata_items):
-                            display_errors_msg(
+                            raise_errors_msg(
                                 f"Line {num}: Duplicate metadata key!"
+                            )
+                    else:
+                        if len(line.split(" ")) > 4:
+                            raise_errors_msg(
+                                f"Line {num}: Invalid"
+                                " metadata format!"
                             )
 
                     if ConfigKeyTypes.START.value in line:
@@ -190,7 +201,7 @@ class FileParser:
                         })
                         msg = self.is_duplicate_zone(hub)
                         if msg:
-                            display_errors_msg(
+                            raise_errors_msg(
                                 f"Line {num}: {msg}"
                             )
                         self.start_zone = hub
@@ -203,7 +214,7 @@ class FileParser:
                         })
                         msg = self.is_duplicate_zone(hub)
                         if msg:
-                            display_errors_msg(
+                            raise_errors_msg(
                                 f"Line {num}: {msg}"
                             )
                         self.end_zone = hub
@@ -216,7 +227,7 @@ class FileParser:
                         })
                         msg = self.is_duplicate_zone(hub)
                         if msg:
-                            display_errors_msg(
+                            raise_errors_msg(
                                 f"Line {num}: {msg}"
                             )
                         self.hubs.append(hub)
@@ -228,32 +239,33 @@ class FileParser:
                         })
                         msg = self.is_duplicate_connection(connection)
                         if msg:
-                            display_errors_msg(
+                            raise_errors_msg(
                                 f"Line {num}: {msg}"
                             )
                         self.connections.append(connection)
 
                 elif ConfigKeyTypes.NB.value not in line:
-                    display_errors_msg(
+                    raise_errors_msg(
                         f"Line {num}: Unsupported line: {line}"
                     )
 
             if finding.get(ConfigKeyTypes.NB.value, 0) == 0:
-                display_errors_msg(
+                raise_errors_msg(
                     f"{ConfigKeyTypes.NB.value} doesn't exist!"
                 )
 
             if finding.get(ConfigKeyTypes.START.value) == 0:
-                display_errors_msg(
+                raise_errors_msg(
                     f"{ConfigKeyTypes.START.value} doesn't exist!"
                 )
 
             if finding.get(ConfigKeyTypes.END.value) == 0:
-                display_errors_msg(
+                raise_errors_msg(
                     f"{ConfigKeyTypes.END.value} doesn't exist!"
                 )
 
         metadata_start = self.start_zone.get("metadata")
+        start_max, end_max = 1, 1
         if metadata_start:
             start_max = metadata_start.get("max_drones", 1)
         metadata_end = self.start_zone.get("metadata")
@@ -261,7 +273,7 @@ class FileParser:
             end_max = metadata_end.get("max_drones", 1)
 
         if start_max < self.nb_drones or end_max < self.nb_drones:
-            display_errors_msg(
+            raise_errors_msg(
                 "'max_drones' in start/end zones must be qual or " +
                 "greater than 'nb_drones'!"
             )

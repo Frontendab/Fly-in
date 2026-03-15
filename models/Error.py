@@ -43,4 +43,4 @@ class PydanticError(Error):
                 f"Field: {error.get("field")}, input: {error.get("input")}" +
                 f",  error: {error.get("msg")}", file=stderr
             )
-        exit(2)
+        exit(1)

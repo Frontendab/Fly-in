@@ -1,15 +1,22 @@
+from os import environ
 from models import Graph, ConfigKeyTypes, ZoneTypes
 from typing import Dict, Any
 
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+
+from pygame.colordict import THECOLORS # noqa
+
 
 def initialize_graph(data: Dict[str, Any], graph: Graph) -> None:
+
+    default_color = "white"
 
     start = data.get(ConfigKeyTypes.START.value)
     if start:
         metadata = start.get("metadata")
         zone_type = metadata.get("zone", ZoneTypes.NORMAL.value)
         max_drones = metadata.get("max_drones", 1)
-        color = metadata.get("color", None)
+        color = metadata.get("color", default_color)
 
         graph.start_zone = graph.create_zone(
             start.get("name"), start.get("x"), start.get("y"), zone_type,
@@ -22,7 +29,7 @@ def initialize_graph(data: Dict[str, Any], graph: Graph) -> None:
         metadata = end.get("metadata", None)
         zone_type = metadata.get("zone", ZoneTypes.NORMAL.value)
         max_drones = metadata.get("max_drones", 1)
-        color = metadata.get("color", None)
+        color = metadata.get("color", default_color)
 
         graph.end_zone = graph.create_zone(
             end.get("name"), end.get("x"), end.get("y"), zone_type,
@@ -35,7 +42,7 @@ def initialize_graph(data: Dict[str, Any], graph: Graph) -> None:
             metadata = zone.get("metadata")
             zone_type = metadata.get("zone", ZoneTypes.NORMAL.value)
             max_drones = metadata.get("max_drones", 1)
-            color = metadata.get("color", None)
+            color = metadata.get("color", default_color)
 
             new_zone = graph.create_zone(
                 zone.get("name"), zone.get("x"), zone.get("y"), zone_type,

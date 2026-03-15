@@ -33,10 +33,10 @@ class ValidateZone(BaseModel):
         description="Type of the zone, default normal"
     )
     color: Optional[Union[str, None]] = Field(
-        None, min_length=3, description="Color of the zone"
+        None, description="Color of the zone"
     )
     max_drones: Optional[int] = Field(
-        1, ge=1,
+        1, ge=0,
         description="Maximum drones that can occupy this zone simultaneously"
     )
 
