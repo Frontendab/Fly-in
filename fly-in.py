@@ -6,6 +6,8 @@ from utils import initialize_graph, display_errors_msg
 
 
 # TODO: I have to add docstring for all methods, classes, functions
+# TODO: I have to verify max_link_capacity
+# TODO: I have to write README.MD file
 
 
 def main() -> None:
@@ -36,7 +38,7 @@ def main() -> None:
         initialize_graph(data, graph)
     except ValidationError as e:
         error = PydanticError(e.errors())
-        format_result = error.format_errors()
+        format_result = error.structure_errors()
         error.display_errors(format_result)
 
     visualize = VisualizeSimulation()
