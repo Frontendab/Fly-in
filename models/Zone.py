@@ -11,9 +11,6 @@ environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 from pygame.colordict import THECOLORS # noqa
 
 
-# TODO: I have to complete the docstring from this file
-
-
 class ZoneTypes(Enum):
     """ZoneTypes: Is Enum class that contain const variables
         to use them in any part of project
@@ -96,6 +93,8 @@ class Zone:
         zone_type: Optional[ZoneTypes] = ZoneTypes.NORMAL,
         max_drones: Optional[int] = 1, color: Optional[str] = ""
     ) -> None:
+        """__init__ is use to assign values to the current instance
+        """
         self.name: str = name
         self.x: int = x
         self.y: int = y
@@ -109,6 +108,15 @@ class Zone:
         self.f: float = float("inf")
 
     def get_cost(self, zone_type: ZoneTypes | None) -> int:
+        """get_cost: Is used to return the cost based on the zone's type
+
+        Args:
+            zone_type (ZoneTypes | None): Zone type you want it is cost
+
+        Returns:
+            int: Return the zone's cost if the type is supported,
+                otherwise return 0
+        """
         if not zone_type:
             return 0
         cost_zones: Dict[ZoneTypes, int] = {

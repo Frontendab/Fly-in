@@ -208,7 +208,7 @@ class VisualizeSimulation:
 
                 new_load = self.colorize(
                     load_hub_image.convert_alpha(),
-                    self.hub_w_h, (new_a, new_b, new_c, d)
+                    (new_a, new_b, new_c, d)
                 )
 
                 hub_image = pygame.transform.scale(
@@ -269,18 +269,19 @@ class VisualizeSimulation:
         self, x: int, y: int, min_x: int, min_y: int,
         max_x: float, max_y: float
     ) -> tuple:
-        """_summary_
+        """get_render_coords: Is used to get the correct
+            position of coordinate on the window
 
         Args:
-            x (int): _description_
-            y (int): _description_
-            min_x (int): _description_
-            min_y (int): _description_
-            max_x (float): _description_
-            max_y (float): _description_
+            x (int): x of the coordinate
+            y (int): y of the coordinate
+            min_x (int): is the min x from all coordinate
+            min_y (int): is the min y from all coordinate
+            max_x (float): is the max x from all coordinate
+            max_y (float): is the min y from all coordinate
 
         Returns:
-            tuple: _description_
+            tuple: Return new tuple's coordinate after calculate it
         """
         pos = self.__get_pos(x, y)
         return (
@@ -289,8 +290,17 @@ class VisualizeSimulation:
         )
 
     def colorize(
-        self, image: pygame.Surface, size: tuple, color: tuple
+        self, image: pygame.Surface, color: tuple
     ) -> pygame.Surface:
+        """colorize: Is used to change the color's image to new color
+
+        Args:
+            image (pygame.Surface): the image you want change they color
+            color (tuple): the new color you want set it to the image
+
+        Returns:
+            pygame.Surface: Return new image after change it color
+        """
         color_surface = pygame.Surface(image.get_size()).convert_alpha()
         color_surface.fill(color)
 
