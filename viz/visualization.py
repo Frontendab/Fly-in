@@ -13,8 +13,8 @@ import pygame # noqa
 from pygame.colordict import THECOLORS # noqa
 
 
-class SizeImages(Enum):
-    """SizeImages: Is Enum class that contain const variables
+class SizeTypes(Enum):
+    """SizeTypes: Is Enum class that contain const variables
         to use them in any part of project
 
     Args:
@@ -25,8 +25,8 @@ class SizeImages(Enum):
     SMALL = "small"
 
 
-class NameImages(Enum):
-    """NameImages: Is Enum class that contain const variables
+class TypesAttribute(Enum):
+    """TypesAttribute: Is Enum class that contain const variables
         to use them in any part of project
 
     Args:
@@ -313,6 +313,16 @@ class VisualizeSimulation:
     def __rotate_image(
         self, canvas: pygame.Surface, draw_x: int, draw_y: int
     ) -> pygame.Surface:
+        """__rotate_image: We use to rotate the image based on the angle
+
+        Args:
+            canvas (pygame.Surface): the screen you want to draw on it
+            draw_x (int): x of the image
+            draw_y (int): y of the image
+
+        Returns:
+            pygame.Surface: Return new rotated image
+        """
 
         rotate_image = pygame.transform.rotate(
             self.drone_img,
@@ -325,6 +335,14 @@ class VisualizeSimulation:
         self, canvas: pygame.Surface,
         graph: Graph
     ) -> None:
+        """__animation_drones: Is used to animate the movement of the drones
+
+        Args:
+            canvas (pygame.Surface): the screen you want to draw on it
+            graph (Graph): It the responsible's class
+                about management the zones
+        """
+
         all_drones_targets = True
         for i, drone in enumerate(graph.drones.values()):
 
@@ -368,6 +386,13 @@ class VisualizeSimulation:
     def __draw_single_drone(
         self, canvas: pygame.Surface, drone: Drone
     ) -> None:
+        """__draw_single_drone: Is used to draw a single drone
+
+        Args:
+            canvas (pygame.Surface): the screen you want to draw on it
+            drone (Drone): the drone you want to draw
+        """
+
         current_pos = self.__get_pos(
             drone.current_zone.x, drone.current_zone.y
         )
@@ -387,6 +412,16 @@ class VisualizeSimulation:
             canvas.blit(surface, rect.topleft)
 
     def __get_pos(self, x: int, y: int) -> tuple:
+        """__get_pos: Is used to get the position of the zone
+
+        Args:
+            x (int): x of the zone
+            y (int): y of the zone
+
+        Returns:
+            tuple: Return the position of the zone
+        """
+
         x_ = (x - self.min_x) * (self.spacing * self.dynamic_scale) + (
             self.start_x)
         y_ = (y - self.min_y) * (self.spacing * self.dynamic_scale) + (
@@ -394,43 +429,49 @@ class VisualizeSimulation:
         return (x_, y_)
 
     def initialize_visualization(self, graph: Graph) -> None:
+        """initialize_visualization: Is used to initialize the visualization
+
+        Args:
+            graph (Graph): It the responsible's class
+                about management the zones
+        """
 
         screen_with = self.pygame_info.current_w
 
         if screen_with < 3000:
 
-            self.change_size_image(
-                NameImages.DRONE,
-                SizeImages.SMALL
+            self.responsive_design(
+                TypesAttribute.DRONE,
+                SizeTypes.SMALL
             )
-            self.change_size_image(
-                NameImages.HUB,
-                SizeImages.SMALL
+            self.responsive_design(
+                TypesAttribute.HUB,
+                SizeTypes.SMALL
             )
-            self.change_size_image(
-                NameImages.SPACING,
-                SizeImages.SMALL
+            self.responsive_design(
+                TypesAttribute.SPACING,
+                SizeTypes.SMALL
             )
-            self.change_size_image(
-                NameImages.ZONE_TYPES,
-                SizeImages.SMALL
+            self.responsive_design(
+                TypesAttribute.ZONE_TYPES,
+                SizeTypes.SMALL
             )
         else:
-            self.change_size_image(
-                NameImages.DRONE,
-                SizeImages.BIG
+            self.responsive_design(
+                TypesAttribute.DRONE,
+                SizeTypes.BIG
             )
-            self.change_size_image(
-                NameImages.HUB,
-                SizeImages.BIG
+            self.responsive_design(
+                TypesAttribute.HUB,
+                SizeTypes.BIG
             )
-            self.change_size_image(
-                NameImages.SPACING,
-                SizeImages.BIG
+            self.responsive_design(
+                TypesAttribute.SPACING,
+                SizeTypes.BIG
             )
-            self.change_size_image(
-                NameImages.ZONE_TYPES,
-                SizeImages.BIG
+            self.responsive_design(
+                TypesAttribute.ZONE_TYPES,
+                SizeTypes.BIG
             )
 
         spacing = self.spacing
@@ -466,35 +507,50 @@ class VisualizeSimulation:
         self.start_x = (self.w_width - scale_width) // 2
         self.start_y = (self.w_height - scale_height) // 2
 
-    def change_size_image(
-        self, name_image: NameImages, size: SizeImages
+    def responsive_design(
+        self, name_type: TypesAttribute, size: SizeTypes
     ) -> None:
-        if name_image == NameImages.HUB:
-            if size == SizeImages.BIG:
+        """responsive_design: It is used to assign the new values to visualization
+
+        Args:
+            name_type (TypesAttribute): It is used to assign the new values
+                to the current instance
+            size (SizeTypes): Size of the responsive
+        """
+
+        if name_type == TypesAttribute.HUB:
+            if size == SizeTypes.BIG:
                 self.hub_w_h = (68, 175)
-            elif size == SizeImages.SMALL:
+            elif size == SizeTypes.SMALL:
                 self.hub_w_h = (30, 80)
-        elif name_image == NameImages.DRONE:
-            if size == SizeImages.BIG:
+        elif name_type == TypesAttribute.DRONE:
+            if size == SizeTypes.BIG:
                 self.image_path_drone = "assets/drone_big.png"
                 self.plus_drone_types = (30, 82)
-            elif size == SizeImages.SMALL:
+            elif size == SizeTypes.SMALL:
                 self.image_path_drone = "assets/drone.png"
                 self.plus_drone_types = (15, 40)
-        elif name_image == NameImages.SPACING:
-            if size == SizeImages.BIG:
+        elif name_type == TypesAttribute.SPACING:
+            if size == SizeTypes.BIG:
                 self.spacing = 250
-            elif size == SizeImages.SMALL:
+            elif size == SizeTypes.SMALL:
                 self.spacing = 300
-        elif name_image == NameImages.ZONE_TYPES:
-            if size == SizeImages.BIG:
+        elif name_type == TypesAttribute.ZONE_TYPES:
+            if size == SizeTypes.BIG:
                 self.size_type_zones = (50, 50)
                 self.plus_zone_types = (10, 105)
-            elif size == SizeImages.SMALL:
+            elif size == SizeTypes.SMALL:
                 self.size_type_zones = (25, 25)
                 self.plus_zone_types = (3, 48)
 
     def __initialize_drone_start(self, graph: Graph) -> None:
+        """__initialize_drone_start: It is used to initialize the drones positions
+
+        Args:
+            graph (Graph): It the responsible's class
+                about management the zones
+        """
+
         for drone in graph.drones.values():
             current_pos = self.__get_pos(
                 drone.current_zone.x, drone.current_zone.y
