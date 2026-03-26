@@ -119,7 +119,7 @@ class VisualizeSimulation:
 
         pathfinder = PathFinder(graph)
         pathfinder.a_star_search()
-        pathfinder.generate_output()
+        # pathfinder.generate_output()
 
         running = True
         while running:

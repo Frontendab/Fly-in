@@ -57,7 +57,7 @@ class PathFinder:
                 continue
             visited.add(state)
 
-            for neighbor in current_zone.target_zone:
+            for neighbor in self.graph.get_neighbor(current_zone.name):
 
                 if neighbor.zone_type == ZoneTypes.BLOCKED:
                     continue
@@ -100,7 +100,6 @@ class PathFinder:
         return []
 
     def __is_zone_available(self, zone: Zone, turn: int) -> bool:
-        # TODO: I have to write a return msg
         """__is_zone_available: Is used to check if the current zone
             is available it or it contain the max of drones
 
@@ -109,7 +108,8 @@ class PathFinder:
             turn (int): the turn you want check if the zone available on it
 
         Returns:
-            bool: 
+            bool: Return True if the count of the current drones in the zone
+                is less then max_capacity, otherwise False
         """
         if zone == self.graph.start_zone or zone == self.graph.end_zone:
             return True
@@ -117,7 +117,6 @@ class PathFinder:
         return self.zone_occupancy[turn][zone.name] < max_capacity
 
     def __is_link_available(self, z1: Zone, z2: Zone, turn: int) -> bool:
-        # TODO: I have to write a return msg
         """__is_link_available: Is used to check if the current link
             connection between two zones is available it
             or it contain the max of link capacity
@@ -128,34 +127,33 @@ class PathFinder:
             turn (int): the turn you want check if the link available on it
 
         Returns:
-            bool: 
+            bool: Return True if the count of the current drones in the link
+                is less then max_link_capacity, otherwise False
         """
         edge = tuple(sorted((z1.name, z2.name)))
         connection = self.graph.get_connection(
             f"{z1.name}-{z2.name}"
         )
-        max_link = getattr(connection, "max_link_capacity", 1)
+        max_link = getattr(connection, "max_link_capacity")
         return self.edge_occupancy[turn][edge] < max_link
 
     def __reserve_path(self, path: List[Zone]) -> None:
         # TODO: I have to write docstring for this function
-        t = 0
-        for i in range(len(path)):
-            current_zone = path[i]
+        """__reserve_path: Is used to reserve path for the current drone
+
+        Args:
+            path (List[Zone]): path of the current drone
+        """
+        for t, current_zone in enumerate(path):
             self.zone_occupancy[t][current_zone.name] += 1
 
-            if i < len(path) - 1:
-                next_zone = path[i + 1]
-                if next_zone.name != current_zone.name:
+            if t < len(path) - 1:
+                next_zone = path[t + 1]
+                if current_zone.name != next_zone.name:
                     edge = tuple(
-                        sorted(
-                            (current_zone.name, next_zone.name)
-                        )
+                        sorted((current_zone.name, next_zone.name))
                     )
                     self.edge_occupancy[t][edge] += 1
-                t += 1
-            else:
-                t += 1
 
     def __calc_h_distance(self, zone: Zone) -> float:
         """__calc_h_distance: Is used to calculate the h(Approximate distance)

@@ -47,6 +47,11 @@ class Graph:
         """
         return self.connections.get(connection_name, None)
 
+    def get_neighbor(self, zone_name: str) -> Zone | None:
+        for i, conn in enumerate(self.connections):
+            print(i, zone_name, conn)
+        return self.get_zone(zone_name).target_zone
+
     def get_drone(self, id: str) -> Drone | None:
         """get_drone: Is return the drone if is it exit
 
