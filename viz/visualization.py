@@ -119,7 +119,7 @@ class VisualizeSimulation:
 
         pathfinder = PathFinder(graph)
         pathfinder.a_star_search()
-        # pathfinder.generate_output()
+        pathfinder.generate_output()
 
         running = True
         while running:
@@ -345,9 +345,6 @@ class VisualizeSimulation:
 
         all_drones_targets = True
         for i, drone in enumerate(graph.drones.values()):
-
-            if not hasattr(drone, "departure_turn"):
-                drone.departure_turn = i * 45
 
             if self.current_sim_turns < drone.departure_turn:
                 self.__draw_single_drone(canvas, drone)

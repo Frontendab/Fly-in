@@ -77,3 +77,5 @@ class Drone:
         self.path: List[Zone] = []
         self.target_index: int = 0
         self.departure_turn: int = departure_turn
+
+        self.reached_end = False
