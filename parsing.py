@@ -1,15 +1,29 @@
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any
 from re import match
 from enum import Enum
+from sys import stderr, exit
+from classes import ZoneTypes
+
+
+def display_errors_msg(msg: str) -> None:
+    """
+    Display an error message to stderr and exit the program.
+
+    Args:
+        msg (str): The error message to display.
+
+    Exits:
+        With code 1 after printing the error.
+    """
+    print(f"[ERROR] {msg}", file=stderr)
+    exit(1)
 
 
 class ConfigKeyTypes(Enum):
-    """ConfigKeyTypes: Is Enum class that contain const variables
-        to use them in any part of project
+    """
+    Enumeration of configuration key types used in parsing.
 
-    Args:
-        Enum (_type_): It Enum class we inherits from it
-            to be this class as enum's class
+    Defines the prefixes for different configuration elements in the file.
     """
     NB = "nb_drones:"
     START = "start_hub:"
@@ -19,10 +33,19 @@ class ConfigKeyTypes(Enum):
 
 
 class FileParser:
-    """FileParser is the class responsible on the parsing
     """
+    Parser for Fly-in configuration files.
+
+    Parses map files to extract drone counts, zones (start, end, hubs),
+    and connections with their metadata and validation.
+    """
+
     def __init__(self, file_name: str) -> None:
-        """__init__ is use to assign values to the current instance
+        """
+        Initialize a FileParser instance.
+
+        Args:
+            file_name (str): Path to the configuration file to parse.
         """
         self.file_name: str = file_name
         self.nb_drones: int = 0
@@ -34,13 +57,21 @@ class FileParser:
         self.__metadata_connection = ("max_link_capacity")
 
     def parse(self) -> Dict[str, Any]:
-        """parse's method is used to parsing and check
-            all the content of the file name
+        """
+        Parse the configuration file and extract all elements.
+
+        Reads the file line by line, validates format, and extracts
+        drone count, zones, and connections. Performs duplicate checks
+        and metadata validation.
 
         Returns:
-            Dict[str, Any]: return Dict of the file's data after paring it
+            Dict[str, Any]: Dictionary containing parsed data with keys
+                for nb_drones, start_hub, end_hub, hubs, and connections.
+
+        Raises:
+            SystemExit: If validation errors are found, displays error
+                messages and exits.
         """
-        from utils import raise_errors_msg
 
         finding = {
             ConfigKeyTypes.NB.value: 0,
@@ -51,14 +82,14 @@ class FileParser:
             lines = file.readlines()
 
             if not lines:
-                raise_errors_msg(
+                display_errors_msg(
                     "File is empty!"
                 )
 
             for num, line in enumerate(lines, start=1):
                 connection = {}
                 hub = {}
-                metadata_dict: Dict[str, Union[str, int]] = {}
+                metadata_dict = {}
                 if line[-1] == '\n':
                     line = line[:-1]
 
@@ -71,20 +102,23 @@ class FileParser:
                 if ConfigKeyTypes.NB.value in line:
                     is_match = match(r"^nb_drones: [0-9]+$", line)
                     finding[ConfigKeyTypes.NB.value] += 1
-                    count_find_nb_drones = finding.get(ConfigKeyTypes.NB.value)
-                    if count_find_nb_drones and count_find_nb_drones > 1:
-                        raise_errors_msg(
+                    if finding.get(ConfigKeyTypes.NB.value, 0) > 1:
+                        display_errors_msg(
                             f"Line {num}: Duplicate {ConfigKeyTypes.NB.value}"
                         )
                     if not is_match:
-                        raise_errors_msg(
-                            f"Line {num}: Invalid line Format\n"
-                            "The first line must start with the following"
-                            " pattern:\n-> nb_drones: <number>\n"
+                        display_errors_msg(
+                            f"Line {num}: Invalid File Format\n"
+                            "The first file must start with the following"
+                            " pattern:\n-> nb_drones: <integer>\n"
                             "Please check your input file and try again."
                         )
                     nb_drones = line.split(" ", 1)[1]
                     self.nb_drones = int(nb_drones)
+                    if self.nb_drones == 0:
+                        display_errors_msg(
+                            f"Line: {num}, nb_drones it must be greater then 0"
+                        )
 
                 if (ConfigKeyTypes.HUBS.value in line
                         or ConfigKeyTypes.START.value in line
@@ -93,54 +127,46 @@ class FileParser:
 
                     type_hub = ""
                     is_match = None
-                    pattern_hub = r"^start_hub:\s(\w+)\s(-?\d+)\s(-?\d+)"
-                    pattern_hub += r"(?:\s+\[(.*)\])?"
                     if ConfigKeyTypes.START.value in line:
                         is_match = match(
-                            pattern_hub,
+                            r"^start_hub: (\w+) (-?\d+) (-?\d+)(?:(.*))?",
                             line
                         )
                         type_hub = ConfigKeyTypes.START.value
                         finding[ConfigKeyTypes.START.value] += 1
-                        count_find_start = finding.get(
-                            ConfigKeyTypes.START.value
-                        )
-                        if count_find_start and count_find_start > 1:
-                            raise_errors_msg(
+                        if finding.get(ConfigKeyTypes.START.value, 0) > 1:
+                            display_errors_msg(
                                 f"Line {num}: Duplicate " +
                                 f"{ConfigKeyTypes.START.value}"
                             )
                     elif ConfigKeyTypes.END.value in line:
-                        pattern_end = r"^end_hub:\s(\w+)\s(-?\d+)\s(-?\d+)"
-                        pattern_end += r"(?:\s+\[(.*)\])?"
                         is_match = match(
-                            pattern_end,
+                            r"^end_hub: (\w+) (-?\d+) (-?\d+)(?:(.*))?",
                             line
                         )
                         type_hub = ConfigKeyTypes.END.value
                         finding[ConfigKeyTypes.END.value] += 1
-                        count_find_end = finding.get(ConfigKeyTypes.END.value)
-                        if count_find_end and count_find_end > 1:
-                            raise_errors_msg(
+                        if finding.get(ConfigKeyTypes.END.value, 0) > 1:
+                            display_errors_msg(
                                 f"Line {num}: Duplicate " +
                                 F"{ConfigKeyTypes.END.value}"
                             )
                     elif ConfigKeyTypes.CONN.value in line:
                         is_match = match(
-                            r"^connection:\s(\w+)-(\w+)(?:\s+\[(.*)\])?",
+                            r"^connection: (\w+)-(\w+)(?:(.*))?",
                             line
                         )
                         type_hub = ConfigKeyTypes.CONN.value
                     else:
                         is_match = match(
-                            r"^hub:\s(\w+)\s(-?\d+)\s(-?\d+)(?:\s+\[(.*)\])?",
+                            r"^hub: (\w+) (-?\d+) (-?\d+)(?:(.*))?",
                             line
                         )
                         type_hub = ConfigKeyTypes.HUBS.value
 
                     if not is_match:
-                        raise_errors_msg(
-                            f"Line {num}: Invalid line Format\n"
+                        display_errors_msg(
+                            f"Line {num}: Invalid File Format\n"
                             "it must be following this pattern\n"
                             f"-> {type_hub} <name> <number> <number> " +
                             "[color=green]\n"
@@ -154,34 +180,33 @@ class FileParser:
                         name_a, name_b, metadata = is_match.groups()
 
                     if metadata:
-                        if (
-                            type_hub != ConfigKeyTypes.CONN.value
-                            and not line.split(" ")[3].isdigit()
-                        ):
-                            raise_errors_msg(
-                                f"Line {num}: Invalid"
-                                " metadata format!"
+                        metadata = metadata.strip()
+                        is_format_metadata = match(
+                            r"\[(.*)\]", metadata
+                        )
+
+                        if not is_format_metadata:
+                            display_errors_msg(
+                                f"Line {num}: Invalid {metadata} metadata" +
+                                " format!"
                             )
 
-                        metadata_items = (
-                            metadata.split(" ")
-                        )
+                        if is_format_metadata:
+                            metadata_items = (
+                                is_format_metadata.group()[1:-1].split(" ")
+                            )
+
                         for meta in metadata_items:
                             if meta:
                                 if "=" not in meta or meta.count("=") > 1:
-                                    raise_errors_msg(
+                                    display_errors_msg(
                                         f"Line {num}: Invalid ({meta})"
                                         " metadata format!"
                                     )
                                 key, value = meta.split("=", 1)
-                                if not value:
-                                    raise_errors_msg(
-                                        f"Line {num}: Value({key}) of the " +
-                                        "key must be not empty!"
-                                    )
                                 if (type_hub != ConfigKeyTypes.CONN.value
                                         and key not in self.__metadata_zones):
-                                    raise_errors_msg(
+                                    display_errors_msg(
                                         f"Line {num}: Invalid zones's" +
                                         " metadata, " +
                                         f"expected: {self.__metadata_zones}!"
@@ -189,24 +214,17 @@ class FileParser:
                                 elif (type_hub == ConfigKeyTypes.CONN.value
                                         and
                                         key not in self.__metadata_connection):
-                                    raise_errors_msg(
+                                    display_errors_msg(
                                         f"Line {num}: Invalid connection's"
                                         " metadata, " +
                                         "expected: " +
                                         f"{self.__metadata_connection}!"
                                     )
                                 metadata_dict[key] = value
-                                if "max_drones" in key:
-                                    metadata_dict[key] = int(value)
+
                         if self.is_duplicate_metadata_key(metadata_items):
-                            raise_errors_msg(
+                            display_errors_msg(
                                 f"Line {num}: Duplicate metadata key!"
-                            )
-                    else:
-                        if len(line.split(" ")) > 4:
-                            raise_errors_msg(
-                                f"Line {num}: Invalid"
-                                " metadata format!"
                             )
 
                     if ConfigKeyTypes.START.value in line:
@@ -218,8 +236,19 @@ class FileParser:
                         })
                         msg = self.is_duplicate_zone(hub)
                         if msg:
-                            raise_errors_msg(
+                            display_errors_msg(
                                 f"Line {num}: {msg}"
+                            )
+                        s_zone_type = metadata_dict.get("zone")
+                        if (
+                            s_zone_type
+                            and s_zone_type == ZoneTypes.BLOCKED.value
+                        ):
+                            display_errors_msg(
+                                f"Line: {num} You can't specific start's zone"
+                                f" as type {s_zone_type}, "
+                                "Because drones must "
+                                "not enter or pass through this zone."
                             )
                         self.start_zone = hub
                     elif ConfigKeyTypes.END.value in line:
@@ -231,8 +260,18 @@ class FileParser:
                         })
                         msg = self.is_duplicate_zone(hub)
                         if msg:
-                            raise_errors_msg(
+                            display_errors_msg(
                                 f"Line {num}: {msg}"
+                            )
+                        e_zone_type = metadata_dict.get("zone")
+                        if (
+                            e_zone_type
+                            and e_zone_type == ZoneTypes.BLOCKED.value
+                        ):
+                            display_errors_msg(
+                                f"Line: {num} You can't specific end's zone as"
+                                f" type {e_zone_type}, because Drones must "
+                                "not enter or pass through this zone."
                             )
                         self.end_zone = hub
                     elif ConfigKeyTypes.HUBS.value in line:
@@ -244,7 +283,7 @@ class FileParser:
                         })
                         msg = self.is_duplicate_zone(hub)
                         if msg:
-                            raise_errors_msg(
+                            display_errors_msg(
                                 f"Line {num}: {msg}"
                             )
                         self.hubs.append(hub)
@@ -256,44 +295,30 @@ class FileParser:
                         })
                         msg = self.is_duplicate_connection(connection)
                         if msg:
-                            raise_errors_msg(
+                            display_errors_msg(
                                 f"Line {num}: {msg}"
                             )
                         self.connections.append(connection)
 
                 elif ConfigKeyTypes.NB.value not in line:
-                    raise_errors_msg(
+                    display_errors_msg(
                         f"Line {num}: Unsupported line: {line}"
                     )
 
             if finding.get(ConfigKeyTypes.NB.value, 0) == 0:
-                raise_errors_msg(
+                display_errors_msg(
                     f"{ConfigKeyTypes.NB.value} doesn't exist!"
                 )
 
             if finding.get(ConfigKeyTypes.START.value) == 0:
-                raise_errors_msg(
+                display_errors_msg(
                     f"{ConfigKeyTypes.START.value} doesn't exist!"
                 )
 
             if finding.get(ConfigKeyTypes.END.value) == 0:
-                raise_errors_msg(
+                display_errors_msg(
                     f"{ConfigKeyTypes.END.value} doesn't exist!"
                 )
-
-        metadata_start = self.start_zone.get("metadata")
-        start_max, end_max = 1, 1
-        if metadata_start:
-            start_max = metadata_start.get("max_drones", 1)
-        metadata_end = self.start_zone.get("metadata")
-        if metadata_end:
-            end_max = metadata_end.get("max_drones", 1)
-
-        if start_max < self.nb_drones or end_max < self.nb_drones:
-            raise_errors_msg(
-                "'max_drones' in start/end zones must be qual or " +
-                "greater than 'nb_drones'!"
-            )
 
         return {
             ConfigKeyTypes.NB.value: self.nb_drones,
@@ -304,15 +329,15 @@ class FileParser:
         }
 
     def is_duplicate_zone(self, hub: Dict[str, Any]) -> bool | str:
-        """is_duplicate_zone: Is used to check if the hub's zone is duplicated
+        """
+        Check if a zone is a duplicate based on name or coordinates.
 
         Args:
-            hub (Dict[str, Any]): the zone you want check it is duplicated
-                or not
+            hub (Dict[str, Any]): Zone data to check.
 
         Returns:
-            bool | str: Return(False) if the zone doesn't duplicated
-                otherwise return helpful message to display it to user
+            bool | str: False if no duplicate,
+                error message string if duplicate.
         """
 
         if self.start_zone:
@@ -320,45 +345,25 @@ class FileParser:
                 return (
                     f"Duplicate \"{hub.get('name')}\" name!"
                 )
-            elif (self.start_zone.get("x") == hub.get("x")
-                    and self.start_zone.get("y") == hub.get("y")):
-                return (
-                    f"Duplicate \"{hub.get('name')}\" with " +
-                    f"\"{self.start_zone.get('name')}\" coordinates!"
-                )
         if self.end_zone:
             if self.end_zone.get("name") == hub.get("name"):
                 return (
                     f"Duplicate \"{hub.get('name')}\" name!"
                 )
-            elif (self.end_zone.get("x") == hub.get("x")
-                    and self.end_zone.get("y") == hub.get("y")):
-                return (
-                    f"Duplicate \"{hub.get('name')}\" with " +
-                    f"\"{self.end_zone.get('name')}\" coordinates!"
-                )
         for zone in self.hubs:
             if zone.get("name") == hub.get("name"):
                 return f"Duplicate \"{hub.get('name')}\" name!"
-            elif (zone.get("x") == hub.get("x")
-                    and zone.get("y") == hub.get("y")):
-                return (
-                    f"Duplicate \"{hub.get('name')}\" with " +
-                    f"\"{zone.get('name')}\" coordinates!"
-                )
         return False
 
     def is_duplicate_metadata_key(self, metadata: List[str]) -> bool:
-        # TODO: I think i have to improve this method how i can check if is duplicated key
-        # Todo: Because if there are any key in the start and in the end it need to be detected
-        """is_duplicate_metadata_key: We use it to check if
-            they metadata's keys duplicated or not
+        """
+        Check if metadata contains duplicate keys.
 
         Args:
-            metadata (List[str]): Metadata that you want check it
+            metadata (List[str]): List of metadata key-value pairs.
 
         Returns:
-            bool: Return False not found any duplicated otherwise return True
+            bool: True if duplicates found, False otherwise.
         """
         pre_key, _ = metadata[0].split("=", 1)
         for item in metadata[1:]:
@@ -373,16 +378,14 @@ class FileParser:
     def is_duplicate_connection(
         self, connection: Dict[str, Any]
     ) -> bool | str:
-        """is_duplicate_connection: Is it check if there are
-            any duplicate connection
+        """
+        Check if a connection is duplicate or references non-existent zones.
 
         Args:
-            connection (Dict[str, Any]): the connection you want check
-                it is duplicated
+            connection (Dict[str, Any]): Connection data to check.
 
         Returns:
-            bool | str: Return(False) if the connection doesn't duplicated
-                otherwise return helpful message to display it to user
+            bool | str: False if valid, error message string if invalid.
         """
 
         for conn in self.connections:
@@ -407,13 +410,14 @@ class FileParser:
         return False
 
     def is_exist_zone(self, name: str | None) -> bool:
-        """is_exist_zone: It used to check if the current zone is exist
+        """
+        Check if a zone with the given name exists.
 
         Args:
-            name (str | None): the name of the zone
+            name (str): Name of the zone to check.
 
         Returns:
-            bool: Return True if is't found otherwise return False
+            bool: True if zone exists, False otherwise.
         """
         if self.start_zone.get("name") == name:
             return True

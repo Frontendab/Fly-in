@@ -1,28 +1,180 @@
-# Fly-in
+*This project has been created as part of the 42 curriculum by asadouri.*
 
-### Format list of connection:
-```json
-    list_connection = [
-        {
-            "zones": {
-                "zone_a": graph.zones.get("start"),
-                "zone_b": graph.zones.get("waypoint1")
-            },
-            "max_link_capacity": 4,
-        },
-        {
-            "zones": {
-                "zone_a": graph.zones.get("waypoint1"),
-                "zone_b": graph.zones.get("waypoint2")
-            },
-            "max_link_capacity": 2,
-        },
-        {
-            "zones": {
-                "zone_a": graph.zones.get("waypoint2"),
-                "zone_b": graph.zones.get("goal")
-            },
-            "max_link_capacity": 3,
-        },
-    ]
+# Fly-in: Multi-Drone Pathfinding & Simulation
+
+## Description
+
+**Fly-in** is a multi-agent pathfinding simulation designed to coordinate a fleet of drones through a complex network of zones and connections. The primary goal is to move all drones from a designated `start_hub` to an `end_hub` in the minimum number of turns possible while strictly adhering to physical constraints such as zone capacities, link capacities, and varying terrain types (Restricted, Priority, etc.).
+
+This project tackles the **Cooperative Pathfinding** problem, ensuring that drones do not collide or exceed the structural limits of the graph, utilizing a time-expanded search space.
+
+## Features
+
+  - **Space-Time A* Algorithm*\*: Navigates drones through both physical space and discrete time intervals.
+  - **Capacity Management**: Real-time tracking of `max_drones` per zone and `max_link_capacity` per connection.
+  - **Diverse Terrain Support**:
+      - `RESTRICTED`: Movements take 2 turns.
+      - `PRIORITY`: Favored by the algorithm to optimize flow.
+      - `BLOCKED`: Non-traversable nodes.
+  - **Strategic Waiting**: Drones can choose to stay in their current zone to wait for a path to clear.
+  - **High-Performance Visualizer**: A Pygame-based GUI that renders movement with smooth interpolation and real-time state feedback.
+
+## Instructions
+
+### Prerequisites
+
+  - Python 3.10 or higher.
+  - `pip` (Python package installer).
+
+### Installation
+
+The project includes a `Makefile` to automate the setup of the Virtual Environment (`venv`):
+
+```bash
+# Clone the repository
+git clone <your-repo-link>
+cd fly-in
+
+# Install dependencies and set up venv
+make install
 ```
+
+### Execution
+
+To run the simulation with a specific map:
+
+```bash
+make run FILE_NAME_MAP=<path>
+```
+
+## Algorithm & Implementation Strategy
+
+The `PathFinder` class implements a turn-based cooperative pathfinding algorithm with explicit capacity reservation and restricted-zone transit handling.
+
+### 1\. Pre-computation
+
+The algorithm begins with Dijkstra search from the `end_hub`.
+
+- **Distance map**: All zone distances are initialized to infinity, except `end_hub` which is set to 0.
+- **Reverse expansion**: The search explores neighbors through the reverse adjacency list (`target_zone_from_end`). Blocked zones are skipped.
+- **Terrain cost**: Movement cost is based on zone type: normal and priority zones cost `1`, restricted zones cost `2`. Priority zones receive a heuristic bias by subtracting `0.5` from their cost, encouraging route selection through them.
+- **Result**: The computed distance map is stored in `self.shortest_dist` and used during move selection.
+
+### 2\. Turn Order and Drone Evaluation
+
+Drones are processed in a deterministic order each turn.
+
+- **Sorting**: The implementation attempts to sort drones with the heuristic map. Since the pathfinder looks up distances using name's drone current_zone, the order remains stable and reproducible.
+- **Effect**: Stable ordering avoids nondeterministic move conflicts when several drones compete for the same connection.
+
+### 3\. Per-turn Move Selection
+
+The algorithm runs a discrete turn loop until every drone reaches the goal.
+
+- **Occupancy counters**: Each turn resets `z_next_count` for destination zone occupancy and `edge_usage` for connection usage.
+- **Neighbor evaluation**: For every unfinished drone, the algorithm considers outgoing neighbors and applies the following checks:
+  - Blocked zones are ignored.
+  - Connections must exist and have remaining capacity.
+  - Destination zone capacity is enforced (except for the end zone).
+  - The neighbor with the lowest heuristic distance is chosen.
+
+### 4\. Restricted Zone Transit
+
+Restricted zones require two turns to traverse. The algorithm handles this explicitly.
+
+- **Transit tracking**: When a drone enters a restricted neighbor, it is placed in `in_transit` with one remaining turn and the connection name.
+- **Connection reservation**: The connection remains occupied for both turns of the restricted movement.
+- **Arrival update**: On the following turn, the drone completes the move, enters the restricted zone, and the zone occupancy counter is updated.
+- **Path recording**: While in transit, the drone path records the connection identifier. Upon arrival, the zone name is appended.
+
+### 5\. Waiting and Move Application
+
+If no valid move exists, the drone waits in place.
+
+- **Wait handling**: Drones that cannot move due to blocked connections or capacity limits remain in their current zone.
+- **Batch apply**: All moves are committed together, updating current zones and drone paths.
+- **Finish condition**: Drones are marked finished when they arrive at the `end_hub`, and the loop continues until all drones finish.
+
+### 6\. Output Generation
+
+The output printer converts the recorded paths into turn-by-turn move lines.
+
+- **Skip idle steps**: Consecutive entries where the drone stays in the same zone are omitted from output.
+- **Turn formatting**: Moves are printed in `D<id>-<location>` format, grouped by turn.
+
+This implementation focuses on a heuristic-guided, capacity-aware simulation of drone movements, with explicit support for multi-turn restricted-zone traversal and deterministic turn ordering.
+
+## Visualization
+
+The visual representation is built using **Pygame** to enhance the debugging and user experience:
+
+  - **Smooth Interpolation**: Drones do not "teleport" between zones; their positions are interpolated over the `turn_delay`, allowing the user to follow the flow of traffic.
+  - **Visual Feedback**:
+      - Different icons/colors distinguish `RESTRICTED`, `PRIORITY`, and `BLOCKED` zones.
+      - **Dynamic Rotation**: Drone rotors rotate at different speeds based on their state (fast when moving, slow when waiting).
+  - **Collision Visuals**: An offset logic is applied to drones sharing a zone so that the user can see multiple drones occupying a hub simultaneously without perfect overlapping.
+
+## Usage Example
+
+### Input Map
+
+Consider the following simple map file (`maps/easy/01_linear_path.txt`):
+
+```
+# Easy Level 2: Simple fork with two paths
+nb_drones: 3
+
+start_hub: start 0 0 [color=green]
+hub: junction 1 0 [color=yellow max_drones=2]
+hub: path_a 2 1 [color=blue]
+hub: path_b 2 -1 [color=blue]
+end_hub: goal 3 0 [color=red max_drones=3]
+
+connection: start-junction [max_link_capacity=2]
+connection: junction-path_a
+connection: junction-path_b
+connection: path_a-goal
+connection: path_b-goal
+```
+
+### Expected Output
+
+The program will output the sequence of moves for each turn:
+
+```
+D1-junction D2-junction
+D1-path_a D2-path_b D3-junction
+D1-goal D2-goal D3-path_a
+D3-goal
+```
+
+### Explanation
+
+This output is generated by the algorithm as follows:
+
+- **Pre-computation**: Distances are calculated from the end zone ("goal") using reverse Dijkstra. The distances are: "goal"=0, "path_a"=1, "path_b"=1, "junction"=2, "start"=3.
+
+- **Turn 1**: All drones start at "start". Drones are sorted by their current zone's distance (all have distance 3, so by ID: D1, D2, D3). The "junction" zone has a capacity of 2 drones. D1 and D2 move to "junction" (using the connection with capacity 2). D3 cannot move due to capacity limits and waits at "start".
+
+- **Turn 2**: D1 (at "junction") moves to "path_a", D2 moves to "path_b". D3 moves to "junction" (now available).
+
+- **Turn 3**: D1 moves to "goal", D2 moves to "goal". D3 moves to "path_a".
+
+- **Turn 4**: D3 moves to "goal".
+
+The algorithm ensures no capacity violations and prioritizes moves based on heuristic distances to the goal.
+
+## Resources
+
+  - **A* Search Algorithm*\*: [Stanford CS - Introduction to A\*](https://theory.stanford.edu/~amitp/GameProgramming/AStarComparison.html)
+  - **Multi-Agent Pathfinding (MAPF)**: [Introduction to Cooperative Pathfinding](https://www.google.com/search?q=https://www.cs.ubc.ca/~hoos/Publ/sil-hov-05.pdf)
+  - **Pygame Documentation**: [pygame.org/docs](https://www.pygame.org/docs/)
+
+### AI Usage Disclosure
+
+Artificial Intelligence (specifically Large Language Models) was used in the following capacities during this project:
+
+  - **Optimization**: Refining the `f_score` weights to improve the turn count in the "Challenger" map.
+  - **Refactoring**: Assisting in the creation of clean, Pythonic docstrings and type hinting for the `PathFinder` class.
+  - **Visualizer Logic**: Implementing the linear interpolation math used in the Pygame `__move_drones` logic.
+  - **Documentation**: Generating initial drafts for the README and technical explanations.

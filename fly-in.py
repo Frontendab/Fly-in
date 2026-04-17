@@ -1,50 +1,49 @@
-from viz import VisualizeSimulation
-from models import Graph, PydanticError, FileParser
+from visualization import VisualizeSimulation
+from classes import Graph, PydanticError
+from parsing import FileParser, display_errors_msg
 from pydantic import ValidationError
-from sys import exit, stderr, argv
-from utils import initialize_graph, display_errors_msg
-
-
-# TODO: I have to add docstring for all methods, classes, functions
-# TODO: I have to test all maps with config.txt file
-# TODO: I have to verify max_link_capacity
-# TODO: I have to write README.MD file
+from sys import argv, stderr, exit
+from initialize import initialize_graph
+from typing import Dict, Any
 
 
 def main() -> None:
+
     if len(argv) != 2:
         print(
-            "[ERROR]: Missing a filename!",
+            "[WARNING]: Usage (make run MAP=path)",
             file=stderr
         )
         exit(1)
 
-    file_name = argv[1]
+    file_name: str = argv[1]
 
-    data = None
-
+    data: Dict[str, Any] | None = None
     try:
-        file_parser = FileParser(file_name)
+        file_parser: FileParser = FileParser(file_name)
 
         data = file_parser.parse()
-    except (
-        PermissionError, FileNotFoundError,
-        TypeError, ValueError
-    ) as e:
-        display_errors_msg(e)
+    except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
+        display_errors_msg(str(e))
 
-    graph = Graph()
+    if not data:
+        return
+
+    graph: Graph = Graph()
 
     try:
         initialize_graph(data, graph)
     except ValidationError as e:
         error = PydanticError(e.errors())
-        format_result = error.structure_errors()
+        format_result = error.format_errors()
         error.display_errors(format_result)
 
-    visualize = VisualizeSimulation()
-    visualize.initialize_visualization(graph)
-    visualize.run(graph)
+    try:
+        visualize: VisualizeSimulation = VisualizeSimulation()
+        visualize.initialize_visualization(graph)
+        visualize.run(graph)
+    except KeyboardInterrupt:
+        display_errors_msg("Exit the program")
 
 
 if __name__ == "__main__":

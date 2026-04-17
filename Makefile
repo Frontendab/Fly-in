@@ -3,17 +3,16 @@
 VENV = venv
 
 PYTHON = python3
+PYTHON_PIP = ./$(VENV)/bin/python3
 PIP = ./$(VENV)/bin/pip
 MYPY = ./$(VENV)/bin/mypy
 FLAKE8 = ./$(VENV)/bin/flake8
 
-FILE_NAME_MAP = assets/config.txt
+MAP = maps/easy/01_linear_path.txt
 
 PROGRAM_NAME = fly-in
 
-PDB_COMMAND = $(PYTHON) -m pdb $(PROGRAM_NAME).py
-
-CLEAN_COMMAND = rm -rf $$(find . -name "__pycache__" -o -name ".mypy_cache") $(VENV)
+PDB_COMMAND = $(PYTHON_PIP) -m pdb $(PROGRAM_NAME).py
 
 MYPY_FLAGS = --warn-return-any --warn-unused-ignores --ignore-missing-imports \
 			--disallow-untyped-defs --check-untyped-defs
@@ -24,11 +23,16 @@ CREATE_VENV = $(PYTHON) -m venv $(VENV)
 
 INSTALL_DEPS = $(PIP) install -r requirements.txt
 
-UPDATE_PIP = ./$(VENV)/bin/python3 -m pip install --upgrade pip
+UPDATE_PIP = $(PYTHON_PIP) -m pip install --upgrade pip
 
+INSTALL_STAMP = .install_done
+
+CLEAN_COMMAND = rm -rf $$(find . -name "__pycache__" -o -name ".mypy_cache") $(VENV) $(INSTALL_STAMP)
 
 # ? Install a Python package using pip
-install:
+install: $(INSTALL_STAMP)
+
+$(INSTALL_STAMP): requirements.txt
 	@echo "Create virtual environment..."
 	@$(CREATE_VENV)
 	@echo "Updating pip..."
@@ -36,13 +40,16 @@ install:
 	@echo "Installing dependencies..."
 	@$(INSTALL_DEPS)
 	@echo "Dependencies installed successfully."
+	@touch $(INSTALL_STAMP)
 
 # ? Run the program
-run:
-	@$(PYTHON) $(PROGRAM_NAME).py $(FILE_NAME_MAP)
+run: install
+	@clear
+	@$(PYTHON_PIP) $(PROGRAM_NAME).py $(MAP)
 
 # ? Debug the program
-debug:
+debug: install
+	@clear
 	@$(PDB_COMMAND)
 
 # ? Clean the program
@@ -51,7 +58,6 @@ clean:
 	@echo "Program cleaned successfully."
 
 # ? Lint the program
-lint:
+lint: install
+	@clear
 	@$(LINT_COMMAND)
-
-.PHONY: all install run debug clean lint
