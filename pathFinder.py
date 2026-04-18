@@ -3,6 +3,7 @@ from classes import Zone, ZoneTypes, Graph
 from heapq import heappush, heappop
 from itertools import count
 from collections import defaultdict
+from parsing import display_errors_msg
 
 
 class PathFinder:
@@ -246,8 +247,37 @@ class PathFinder:
                     drone.current_zone = new_zone
                     drone.path.append((turn, new_zone.name))
 
+                    if (
+                        new_zone != self.graph.end_zone
+                        and not self.is_valid_path(drone.current_zone)
+                    ):
+                        # Invalid state: drone didn't move but is
+                        # not waiting in the same zone
+                        display_errors_msg(
+                            "Invalid path: found a path that " +
+                            "doesn't lead to the end zone."
+                        )
+
                     if new_zone == self.graph.end_zone:
                         drone.finished = True
+
+                print(drone.path)
+
+    def is_valid_path(self, current_zone: Zone) -> bool:
+        valid = []
+        distance = self.shortest_dist.get(
+            current_zone.name, float("inf")
+        )
+
+        if distance == float("inf"):
+            return False
+
+        for neighbor in current_zone.target_zone:
+            if neighbor.zone_type != ZoneTypes.BLOCKED:
+                valid.append(neighbor.name)
+        if not valid:
+            return False
+        return True
 
     def generate_output(self) -> None:
         """
