@@ -166,15 +166,15 @@ The algorithm ensures no capacity violations and prioritizes moves based on heur
 
 ## Resources
 
-  - **A* Search Algorithm*\*: [Stanford CS - Introduction to A\*](https://theory.stanford.edu/~amitp/GameProgramming/AStarComparison.html)
-  - **Multi-Agent Pathfinding (MAPF)**: [Introduction to Cooperative Pathfinding](https://www.google.com/search?q=https://www.cs.ubc.ca/~hoos/Publ/sil-hov-05.pdf)
-  - **Pygame Documentation**: [pygame.org/docs](https://www.pygame.org/docs/)
+  - [**A * Search Algorithm**](https://www.geeksforgeeks.org/dsa/a-search-algorithm/)
+  - [**A * Visualization**](https://algorithms.discrete.ma.tum.de/graph-algorithms/spp-a-star/index_en.html)
+  - [**Pygame Tuturial**](https://www.geeksforgeeks.org/python/pygame-tutorial/)
+  - [**Python RegEx**](https://www.w3schools.com/python/python_regex.asp)
 
 ### AI Usage Disclosure
 
-Artificial Intelligence (specifically Large Language Models) was used in the following capacities during this project:
-
-  - **Optimization**: Refining the `f_score` weights to improve the turn count in the "Challenger" map.
-  - **Refactoring**: Assisting in the creation of clean, Pythonic docstrings and type hinting for the `PathFinder` class.
-  - **Visualizer Logic**: Implementing the linear interpolation math used in the Pygame `__move_drones` logic.
+Artificial Intelligence (specifically Large Language Models) was used **solely for understanding, explanation, and writing the `README.md`** during this project. Its contributions included:
+  - **Optimization**: Helping to understand how to improve the turn count in the "Challenger" map.
+  - **Refactoring**: Assisting in the creation of clean, Pythonic docstrings and type hinting for the `PathFinder` class, primarily for explanatory purposes.
+  - **Visualizer Logic**: Aiding in understanding and implementing the linear interpolation math used in the Pygame `__move_drones` logic.
   - **Documentation**: Generating initial drafts for the README and technical explanations.
