@@ -261,8 +261,6 @@ class PathFinder:
                     if new_zone == self.graph.end_zone:
                         drone.finished = True
 
-                print(drone.path)
-
     def is_valid_path(self, current_zone: Zone) -> bool:
         valid = []
         distance = self.shortest_dist.get(
