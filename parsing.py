@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import List, Dict, Any
 from re import match
 from enum import Enum
@@ -78,6 +79,7 @@ class FileParser:
             ConfigKeyTypes.START.value: 0,
             ConfigKeyTypes.END.value: 0,
         }
+        blocked_lines = defaultdict(int)
         with open(self.file_name, "r") as file:
             lines = file.readlines()
 
@@ -286,6 +288,11 @@ class FileParser:
                             display_errors_msg(
                                 f"Line {num}: {msg}"
                             )
+                        if (
+                            metadata_dict
+                            and metadata_dict.get("zone") == ZoneTypes.BLOCKED.value
+                        ):
+                            blocked_lines[name] = num
                         self.hubs.append(hub)
                     elif ConfigKeyTypes.CONN.value in line:
                         connection.update({
@@ -319,6 +326,16 @@ class FileParser:
                 display_errors_msg(
                     f"{ConfigKeyTypes.END.value} doesn't exist!"
                 )
+
+        for hub in self.hubs:
+            metadata = hub.get("metadata", {})
+            name = hub.get("name")
+            if metadata and metadata.get("zone") == ZoneTypes.BLOCKED.value:
+                msg = self.is_duplicate_zone_coordinates(hub)
+                if msg:
+                    display_errors_msg(
+                        f"Line {blocked_lines[name]}: {msg}"
+                    )
 
         return {
             ConfigKeyTypes.NB.value: self.nb_drones,
@@ -427,5 +444,37 @@ class FileParser:
         for zone in self.hubs:
             if zone.get("name") == name:
                 return True
+
+        return False
+
+    def is_duplicate_zone_coordinates(self, hub: Dict[str, Any]) -> bool | str:
+        """
+        Check if a zone has duplicate coordinates with existing zones.
+
+        Args:
+            hub (Dict[str, Any]): Zone data to check.
+        Returns:
+            bool | str: False if no duplicate coordinates,
+                error message string if duplicate coordinates found.
+        """
+        for zone in self.hubs:
+            if zone is hub:
+                continue
+            if (zone.get("x") == hub.get("x")
+                    or zone.get("y") == hub.get("y")):
+                return (
+                    f"Blocked zone hasn't unique coordinates(x, y)"
+                )
+            if (self.start_zone and (self.start_zone.get("x") == hub.get("x")
+                    or self.start_zone.get("y") == hub.get("y"))):
+                return (
+                    f"Blocked zone hasn't unique coordinates(x, y)"
+                )
+
+            if (self.end_zone and (self.end_zone.get("x") == hub.get("x")
+                    or self.end_zone.get("y") == hub.get("y"))):
+                return (
+                    f"Blocked zone hasn't unique coordinates(x, y)"
+                )
 
         return False
