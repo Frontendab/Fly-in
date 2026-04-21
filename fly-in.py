@@ -1,9 +1,11 @@
+#! /usr/bin/env python3
+
 from pathFinder import PathFinder
 from visualization import VisualizeSimulation
 from classes import Graph, PydanticError
 from parsing import FileParser, display_errors_msg
 from pydantic import ValidationError
-from sys import argv, stderr, exit
+from sys import argv
 from initialize import initialize_graph
 from typing import Dict, Any
 
@@ -11,11 +13,9 @@ from typing import Dict, Any
 def main() -> None:
 
     if len(argv) != 2:
-        print(
-            "[WARNING]: Usage (make run MAP=path)",
-            file=stderr
+        display_errors_msg(
+            "[WARNING]: Usage (make run MAP=path)"
         )
-        exit(1)
 
     file_name: str = argv[1]
 
