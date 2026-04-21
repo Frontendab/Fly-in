@@ -224,11 +224,6 @@ class FileParser:
                                     )
                                 metadata_dict[key] = value
 
-                        if self.is_duplicate_metadata_key(metadata_items):
-                            display_errors_msg(
-                                f"Line {num}: Duplicate metadata key!"
-                            )
-
                     if ConfigKeyTypes.START.value in line:
                         hub.update({
                             "name": name,
@@ -373,26 +368,6 @@ class FileParser:
         for zone in self.hubs:
             if zone.get("name") == hub.get("name"):
                 return f"Duplicate \"{hub.get('name')}\" name!"
-        return False
-
-    def is_duplicate_metadata_key(self, metadata: List[str]) -> bool:
-        """
-        Check if metadata contains duplicate keys.
-
-        Args:
-            metadata (List[str]): List of metadata key-value pairs.
-
-        Returns:
-            bool: True if duplicates found, False otherwise.
-        """
-        pre_key, _ = metadata[0].split("=", 1)
-        for item in metadata[1:]:
-            if item:
-                key, _ = item.split("=", 1)
-                if pre_key == key:
-                    return True
-                pre_key = key
-
         return False
 
     def is_duplicate_connection(
