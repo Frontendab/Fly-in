@@ -1,4 +1,3 @@
-from pathFinder import PathFinder
 from classes import Zone, ZoneTypes, Graph, Drone
 from typing import Dict, Tuple, Match, Any
 from enum import Enum
@@ -128,10 +127,6 @@ class VisualizeSimulation:
         self.__draw_type_zone(base_canvas)
 
         self.__initialize_drone_start(graph)
-
-        pathfinder = PathFinder(graph)
-        pathfinder.a_star_search()
-        pathfinder.generate_output()
 
         running = True
         while running:

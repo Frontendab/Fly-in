@@ -290,7 +290,10 @@ class FileParser:
                             )
                         if (
                             metadata_dict
-                            and metadata_dict.get("zone") == ZoneTypes.BLOCKED.value
+                            and (
+                                metadata_dict.get("zone")
+                                == ZoneTypes.BLOCKED.value
+                            )
                         ):
                             blocked_lines[name] = num
                         self.hubs.append(hub)
@@ -463,18 +466,28 @@ class FileParser:
             if (zone.get("x") == hub.get("x")
                     or zone.get("y") == hub.get("y")):
                 return (
-                    f"Blocked zone hasn't unique coordinates(x, y)"
+                    "Blocked zone hasn't unique coordinates(x, y)"
                 )
-            if (self.start_zone and (self.start_zone.get("x") == hub.get("x")
-                    or self.start_zone.get("y") == hub.get("y"))):
+            if (
+                self.start_zone and
+                (
+                    self.start_zone.get("x") == hub.get("x")
+                    or self.start_zone.get("y") == hub.get("y")
+                )
+            ):
                 return (
-                    f"Blocked zone hasn't unique coordinates(x, y)"
+                    "Blocked zone hasn't unique coordinates(x, y)"
                 )
 
-            if (self.end_zone and (self.end_zone.get("x") == hub.get("x")
-                    or self.end_zone.get("y") == hub.get("y"))):
+            if (
+                self.end_zone and
+                (
+                    self.end_zone.get("x") == hub.get("x")
+                    or self.end_zone.get("y") == hub.get("y")
+                )
+            ):
                 return (
-                    f"Blocked zone hasn't unique coordinates(x, y)"
+                    "Blocked zone hasn't unique coordinates(x, y)"
                 )
 
         return False

@@ -1,3 +1,4 @@
+from pathFinder import PathFinder
 from visualization import VisualizeSimulation
 from classes import Graph, PydanticError
 from parsing import FileParser, display_errors_msg
@@ -37,6 +38,13 @@ def main() -> None:
         error = PydanticError(e.errors())
         format_result = error.format_errors()
         error.display_errors(format_result)
+
+    try:
+        pathfinder = PathFinder(graph)
+        pathfinder.a_star_search()
+        pathfinder.generate_output()
+    except ValueError as e:
+        display_errors_msg(str(e))
 
     try:
         visualize: VisualizeSimulation = VisualizeSimulation()

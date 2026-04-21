@@ -3,7 +3,6 @@ from classes import Zone, ZoneTypes, Graph
 from heapq import heappush, heappop
 from itertools import count
 from collections import defaultdict
-from parsing import display_errors_msg
 
 
 class PathFinder:
@@ -253,7 +252,7 @@ class PathFinder:
                     ):
                         # Invalid state: drone didn't move but is
                         # not waiting in the same zone
-                        display_errors_msg(
+                        raise ValueError(
                             "Invalid path: found a path that " +
                             "doesn't lead to the end zone."
                         )
