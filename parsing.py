@@ -464,7 +464,7 @@ class FileParser:
             if zone is hub:
                 continue
             if (zone.get("x") == hub.get("x")
-                    or zone.get("y") == hub.get("y")):
+                    and zone.get("y") == hub.get("y")):
                 return (
                     "Blocked zone hasn't unique coordinates(x, y)"
                 )
@@ -472,7 +472,7 @@ class FileParser:
                 self.start_zone and
                 (
                     self.start_zone.get("x") == hub.get("x")
-                    or self.start_zone.get("y") == hub.get("y")
+                    and self.start_zone.get("y") == hub.get("y")
                 )
             ):
                 return (
@@ -483,7 +483,7 @@ class FileParser:
                 self.end_zone and
                 (
                     self.end_zone.get("x") == hub.get("x")
-                    or self.end_zone.get("y") == hub.get("y")
+                    and self.end_zone.get("y") == hub.get("y")
                 )
             ):
                 return (
