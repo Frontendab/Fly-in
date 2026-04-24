@@ -224,13 +224,17 @@ class FileParser:
                                     )
                                 metadata_dict[key] = value
 
+                    max_drones_zone = metadata_dict.get("max_drones", 0)
                     if ConfigKeyTypes.START.value in line:
+                        if int(max_drones_zone) < self.nb_drones:
+                            metadata_dict["max_drones"] = self.nb_drones
                         hub.update({
                             "name": name,
                             "x": int(x),
                             "y": int(y),
                             "metadata": metadata_dict
                         })
+                        print(metadata_dict)
                         msg = self.is_duplicate_zone(hub)
                         if msg:
                             display_errors_msg(
@@ -249,12 +253,15 @@ class FileParser:
                             )
                         self.start_zone = hub
                     elif ConfigKeyTypes.END.value in line:
+                        if int(max_drones_zone) < self.nb_drones:
+                            metadata_dict["max_drones"] = self.nb_drones
                         hub.update({
                             "name": name,
                             "x": int(x),
                             "y": int(y),
                             "metadata": metadata_dict
                         })
+                        print(metadata_dict)
                         msg = self.is_duplicate_zone(hub)
                         if msg:
                             display_errors_msg(
