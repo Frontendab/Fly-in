@@ -234,7 +234,6 @@ class FileParser:
                             "y": int(y),
                             "metadata": metadata_dict
                         })
-                        print(metadata_dict)
                         msg = self.is_duplicate_zone(hub)
                         if msg:
                             display_errors_msg(
@@ -261,7 +260,6 @@ class FileParser:
                             "y": int(y),
                             "metadata": metadata_dict
                         })
-                        print(metadata_dict)
                         msg = self.is_duplicate_zone(hub)
                         if msg:
                             display_errors_msg(
