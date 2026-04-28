@@ -75,7 +75,7 @@ class ValidateZone(BaseModel):
         color_tuple: tuple | str | None = color
         if color:
             color_tuple = THECOLORS.get(color.lower())
-            if not color_tuple and color != "rainbow":
+            if not color_tuple and color.lower() != "rainbow":
                 raise PydanticCustomError(
                     "invalid_color",
                     (
