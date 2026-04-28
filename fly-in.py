@@ -40,13 +40,13 @@ def main() -> None:
         error.display_errors(format_result)
 
     try:
-        pathfinder = PathFinder(graph)
-        pathfinder.a_star_search()
-        pathfinder.generate_output()
-    except ValueError as e:
-        display_errors_msg(str(e))
+        try:
+            pathfinder = PathFinder(graph)
+            pathfinder.a_star_search()
+            pathfinder.generate_output()
+        except ValueError as e:
+            display_errors_msg(str(e))
 
-    try:
         visualize: VisualizeSimulation = VisualizeSimulation()
         visualize.initialize_visualization(graph)
         visualize.run(graph)
