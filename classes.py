@@ -1,7 +1,7 @@
 from typing import Union, Dict, List, Tuple, Any
 from pydantic import (
     BaseModel, Field, ConfigDict, field_validator,
-    model_validator
+    model_validator, ValidationError
 )
 from pydantic_core import PydanticCustomError
 from enum import Enum
@@ -515,3 +515,168 @@ class PydanticError(Error):
                     f",  error: {error.get('msg')}", file=stderr
                 )
         exit(1)
+
+
+class Utils:
+    """Utils functions as helper functions
+    """
+
+    def display_errors_msg(self, msg: str) -> None:
+        """
+        Display an error message to stderr and exit the program.
+
+        Args:
+            msg (str): The error message to display.
+
+        Exits:
+            With code 1 after printing the error.
+        """
+        print(f"[ERROR] {msg}", file=stderr)
+        exit(1)
+
+
+class Engine:
+    """Engine's class to run the all process
+        of the program to exit it
+    """
+
+    def __init__(self, file_name: str, utils: Utils):
+        """Initialize the file_name
+
+        Args:
+            file_name (str): the file name of the parsing file
+        """
+        self.file_name: str = file_name
+        self.utils: Utils = utils
+
+    def start_engine(self) -> None:
+        from visualization import VisualizeSimulation
+        from pathFinder import PathFinder
+        from parsing import FileParser
+
+        """Run the engine to parsing and initialize program
+            with algorithm and visualization
+        """
+
+        data: Dict[str, Any] | None = None
+        try:
+            file_parser: FileParser = FileParser(self.file_name)
+
+            data = file_parser.parse(self.utils.display_errors_msg)
+        except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
+            self.utils.display_errors_msg(str(e))
+
+        if not data:
+            return
+
+        graph: Graph = Graph()
+
+        try:
+            self.initialize_graph(data, graph)
+        except ValidationError as e:
+            error = PydanticError(e.errors())
+            format_result = error.format_errors()
+            error.display_errors(format_result)
+
+        try:
+            try:
+                pathfinder = PathFinder(graph)
+                pathfinder.a_star_search()
+                pathfinder.generate_output()
+            except ValueError as e:
+                self.utils.display_errors_msg(str(e))
+
+            visualize: VisualizeSimulation = VisualizeSimulation()
+            visualize.initialize_visualization(graph)
+            visualize.run(graph)
+        except KeyboardInterrupt:
+            self.utils.display_errors_msg("Exit the program")
+
+    def initialize_graph(
+        self, data: Dict[str, Any], graph: Graph
+    ) -> None:
+        from parsing import ConfigKeyTypes
+
+        """
+        Initialize the graph with zones, connections,
+        and drones from parsed data.
+
+        Creates start and end zones, regular hubs,
+        connections between zones, and initializes drones
+        at the start zone.
+
+        Args:
+            data (Dict[str, Any]): Parsed configuration
+                data containing zones, connections, and drone count.
+            graph (Graph): The graph instance to initialize.
+        """
+
+        start = data.get(ConfigKeyTypes.START.value)
+        if start:
+            metadata = start.get("metadata")
+            zone_type = metadata.get("zone", ZoneTypes.NORMAL.value)
+            max_drones = metadata.get("max_drones", 1)
+            color = metadata.get("color", None)
+
+            graph.start_zone = graph.create_zone(
+                start.get("name"), start.get("x"), start.get("y"), zone_type,
+                max_drones, color
+            )
+
+        end = data.get(ConfigKeyTypes.END.value)
+        if end:
+            metadata = end.get("metadata")
+            zone_type = metadata.get("zone", ZoneTypes.NORMAL.value)
+            max_drones = metadata.get("max_drones", 1)
+            color = metadata.get("color", None)
+
+            graph.end_zone = graph.create_zone(
+                end.get("name"), end.get("x"), end.get("y"), zone_type,
+                max_drones, color
+            )
+
+        for zone in data.get(ConfigKeyTypes.HUBS.value, []):
+            metadata = zone.get("metadata")
+            zone_type = metadata.get("zone", ZoneTypes.NORMAL.value)
+            max_drones = metadata.get("max_drones", 1)
+            color = metadata.get("color", None)
+
+            new_zone = graph.create_zone(
+                zone.get("name"), zone.get("x"), zone.get("y"), zone_type,
+                max_drones, color
+            )
+            graph.zones.update({
+                new_zone.name: new_zone
+            })
+
+        for conn in data.get(ConfigKeyTypes.CONN.value, []):
+
+            metadata = conn.get("metadata", None)
+            max_link_capacity = 1
+            if metadata:
+                max_link_capacity = metadata.get("max_link_capacity", 1)
+
+            zone_a = graph.get_zone(conn.get("name_a"))
+            zone_b = graph.get_zone(conn.get("name_b"))
+            if zone_a and zone_b:
+                new_conn = graph.create_connection(
+                    zone_a,
+                    zone_b, max_link_capacity
+                )
+                new_conn.initialize_connect()
+                key_format = f"{new_conn.zone_a.name}-{new_conn.zone_b.name}"
+                graph.connections.update({
+                    key_format: new_conn
+                })
+
+        nb_drones = data.get(ConfigKeyTypes.NB.value, 0)
+
+        for idx in range(1, nb_drones + 1):
+            drone = graph.create_drone(
+                idx,
+                graph.start_zone,
+                graph.start_zone.target_zone
+            )
+            graph.drones.update({
+                drone.id: drone
+            })

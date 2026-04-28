@@ -1,23 +1,8 @@
 from collections import defaultdict
-from typing import List, Dict, Any
+from typing import List, Dict, Callable, Any
 from re import match
 from enum import Enum
-from sys import stderr, exit
 from classes import ZoneTypes
-
-
-def display_errors_msg(msg: str) -> None:
-    """
-    Display an error message to stderr and exit the program.
-
-    Args:
-        msg (str): The error message to display.
-
-    Exits:
-        With code 1 after printing the error.
-    """
-    print(f"[ERROR] {msg}", file=stderr)
-    exit(1)
 
 
 class ConfigKeyTypes(Enum):
@@ -57,7 +42,7 @@ class FileParser:
         self.__metadata_zones = ("color", "zone", "max_drones")
         self.__metadata_connection = ("max_link_capacity")
 
-    def parse(self) -> Dict[str, Any]:
+    def parse(self, display_errors_msg: Callable) -> Dict[str, Any]:
         """
         Parse the configuration file and extract all elements.
 
