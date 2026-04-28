@@ -261,6 +261,16 @@ class PathFinder:
                         drone.finished = True
 
     def is_valid_path(self, current_zone: Zone) -> bool:
+        """Check if there the valid path or not from start to end
+
+        Args:
+            current_zone (Zone): Current zone you want check
+                if there valid path from it
+
+        Returns:
+            bool: If there valid path return True,
+                otherwise return False
+        """
         valid = []
         distance = self.shortest_dist.get(
             current_zone.name, float("inf")
