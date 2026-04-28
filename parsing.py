@@ -80,6 +80,7 @@ class FileParser:
             ConfigKeyTypes.END.value: 0,
         }
         blocked_lines = defaultdict(int)
+        is_first_line: bool = True
         with open(self.file_name, "r") as file:
             lines = file.readlines()
 
@@ -101,9 +102,10 @@ class FileParser:
                 if not line.strip():
                     continue
 
-                if ConfigKeyTypes.NB.value in line:
+                if is_first_line:
                     is_match = match(r"^nb_drones: [0-9]+$", line)
                     finding[ConfigKeyTypes.NB.value] += 1
+                    is_first_line = False
                     if finding.get(ConfigKeyTypes.NB.value, 0) > 1:
                         display_errors_msg(
                             f"Line {num}: Duplicate {ConfigKeyTypes.NB.value}"
@@ -111,7 +113,7 @@ class FileParser:
                     if not is_match:
                         display_errors_msg(
                             f"Line {num}: Invalid File Format\n"
-                            "The first file must start with the following"
+                            "The first line must start with the following"
                             " pattern:\n-> nb_drones: <integer>\n"
                             "Please check your input file and try again."
                         )
