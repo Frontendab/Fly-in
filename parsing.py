@@ -365,14 +365,32 @@ class FileParser:
                 return (
                     f"Duplicate \"{hub.get('name')}\" name!"
                 )
+            elif (self.start_zone.get("x") == hub.get("x")
+                    and self.start_zone.get("y") == hub.get("y")):
+                return (
+                    f"Duplicate \"{hub.get('name')}\" with " +
+                    f"\"{self.start_zone.get('name')}\" coordinates!"
+                )
         if self.end_zone:
             if self.end_zone.get("name") == hub.get("name"):
                 return (
                     f"Duplicate \"{hub.get('name')}\" name!"
                 )
+            elif (self.end_zone.get("x") == hub.get("x")
+                    and self.end_zone.get("y") == hub.get("y")):
+                return (
+                    f"Duplicate \"{hub.get('name')}\" with " +
+                    f"\"{self.end_zone.get('name')}\" coordinates!"
+                )
         for zone in self.hubs:
             if zone.get("name") == hub.get("name"):
                 return f"Duplicate \"{hub.get('name')}\" name!"
+            elif (zone.get("x") == hub.get("x")
+                    and zone.get("y") == hub.get("y")):
+                return (
+                    f"Duplicate \"{hub.get('name')}\" with " +
+                    f"\"{zone.get('name')}\" coordinates!"
+                )
         return False
 
     def is_duplicate_connection(
