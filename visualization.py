@@ -207,7 +207,7 @@ class VisualizeSimulation:
                 zone.color if zone.color else THECOLORS.get("white")
             )
 
-            if zone.color_name != "rainbow" and color:
+            if zone.color_name.lower() != "rainbow" and color:
                 if isinstance(color, tuple):
                     a, b, c, d = color
                     new_a = int(a * 0.6 + 255 * 0.3)
