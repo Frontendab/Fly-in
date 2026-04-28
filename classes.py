@@ -20,6 +20,7 @@ class ZoneTypes(Enum):
 
     Defines the behavior and cost of different zone types for pathfinding.
     """
+
     NORMAL = "normal"
     BLOCKED = "blocked"
     RESTRICTED = "restricted"
@@ -33,6 +34,7 @@ class ValidateZone(BaseModel):
     Ensures that zone parameters are properly validated,
     including name, coordinates, type, color, and capacity.
     """
+
     name: str = Field(
         min_length=1, description="Name of the zone"
     )
@@ -152,6 +154,7 @@ class ValidateConnection(BaseModel):
     This model ensures that connection parameters are properly validated,
     including zone references and maximum link capacity.
     """
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
     zone_a: Zone = Field(
         description="First zone to connect it with the second"
@@ -210,6 +213,7 @@ class ValidateDrone(BaseModel):
     This model ensures that drone parameters are properly validated,
     including ID format, current zone, and target zones.
     """
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: str = Field(
         description="ID of the drone"
@@ -518,7 +522,10 @@ class PydanticError(Error):
 
 
 class Utils:
-    """Utils functions as helper functions
+    """
+    You can use multiple function as helper function.
+
+    with your program
     """
 
     def display_errors_msg(self, msg: str) -> None:
@@ -536,12 +543,15 @@ class Utils:
 
 
 class Engine:
-    """Engine's class to run the all process
-        of the program to exit it
+    """
+    Engine's class to run the all process.
+
+    of the program to exit it
     """
 
     def __init__(self, file_name: str, utils: Utils):
-        """Initialize the file_name
+        """
+        Initialize the file_name.
 
         Args:
             file_name (str): the file name of the parsing file
@@ -550,13 +560,14 @@ class Engine:
         self.utils: Utils = utils
 
     def start_engine(self) -> None:
+        """
+        Run the engine to parsing and initialize program.
+
+        with algorithm and visualization
+        """
         from visualization import VisualizeSimulation
         from pathFinder import PathFinder
         from parsing import FileParser
-
-        """Run the engine to parsing and initialize program
-            with algorithm and visualization
-        """
 
         data: Dict[str, Any] | None = None
         try:
@@ -595,14 +606,15 @@ class Engine:
     def initialize_graph(
         self, data: Dict[str, Any], graph: Graph
     ) -> None:
-        from parsing import ConfigKeyTypes
-
         """
-        Initialize the graph with zones, connections,
+        Initialize the graph with zones, connections.
+
         and drones from parsed data.
 
         Creates start and end zones, regular hubs,
+
         connections between zones, and initializes drones
+
         at the start zone.
 
         Args:
@@ -610,6 +622,8 @@ class Engine:
                 data containing zones, connections, and drone count.
             graph (Graph): The graph instance to initialize.
         """
+
+        from parsing import ConfigKeyTypes
 
         start = data.get(ConfigKeyTypes.START.value)
         if start:

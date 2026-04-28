@@ -11,6 +11,7 @@ class ConfigKeyTypes(Enum):
 
     Defines the prefixes for different configuration elements in the file.
     """
+
     NB = "nb_drones:"
     START = "start_hub:"
     END = "end_hub:"

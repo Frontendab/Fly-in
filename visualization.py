@@ -16,6 +16,7 @@ class SizeImages(Enum):
 
     Defines available sizes for visual elements.
     """
+
     BIG = "big"
     SMALL = "small"
 
@@ -26,6 +27,7 @@ class NameImages(Enum):
 
     Defines the types of images used in visualization.
     """
+
     HUB = "hub"
     DRONE = "drone"
     SPACING = "spacing"
