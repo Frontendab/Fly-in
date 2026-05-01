@@ -111,7 +111,6 @@ Dijkstra pre-computes shortest distances from the end hub for an admissible heur
 
 ## Design decision
 
-
 ### Precomputing Distances (Dijkstra)
 Before any drones move, the `__precompute_distances` method runs a Dijkstra search starting from the **end zone** and working backward.
 
