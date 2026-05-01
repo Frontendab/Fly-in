@@ -1,3 +1,7 @@
+"""
+    This module defines the core classes for the Fly-in navigation system.
+"""
+
 from typing import Union, Dict, List, Tuple, Any
 from pydantic import (
     BaseModel, Field, ConfigDict, field_validator,

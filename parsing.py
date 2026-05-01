@@ -1,3 +1,7 @@
+"""
+    Module for parsing Fly-in configuration files.
+"""
+
 from collections import defaultdict
 from typing import List, Dict, Callable, Any
 from re import match

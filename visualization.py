@@ -1,3 +1,7 @@
+"""
+    Visualization module for the Fly-in drone simulation.
+"""
+
 from classes import Zone, ZoneTypes, Graph, Drone
 from typing import Dict, Tuple, Match, Any
 from enum import Enum

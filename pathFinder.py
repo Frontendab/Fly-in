@@ -1,3 +1,7 @@
+"""
+    PathFinder module for drone navigation.
+"""
+
 from typing import List, Tuple, Dict, cast
 from classes import Zone, ZoneTypes, Graph
 from heapq import heappush, heappop
