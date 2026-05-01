@@ -109,7 +109,7 @@ Space-Time A* was selected as the core algorithm because it handles multi-agent 
 #### Dijkstra's Algorithm for Pre-computation
 Dijkstra pre-computes shortest distances from the end hub for an admissible heuristic. It's chosen for non-negative weights and single-source shortest paths, reducing search space compared to no heuristic.
 
-## Design desision
+## Design decision
 
 
 ### Precomputing Distances (Dijkstra)
