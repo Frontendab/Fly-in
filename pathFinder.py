@@ -4,7 +4,6 @@
 
 from typing import List, Tuple, Dict, cast
 from classes import Zone, ZoneTypes, Graph
-from heapq import heappush, heappop
 from itertools import count
 from collections import defaultdict
 
@@ -33,34 +32,30 @@ class PathFinder:
 
     def __precompute_distances(self) -> Dict[str, float]:
         """
-        Precompute shortest distances from all zones to the end zone.
-
-        Uses Dijkstra's algorithm (reversed from end) to calculate
-        heuristic distances for A*.
+        Precompute shortest distances from all zones to
+        the end zone to calculate heuristic distances for A*.
 
         Returns:
             Dict[str, float]: Dictionary mapping zone names to distances.
         """
-
         dist: Dict[str, float] = {
             zone.name: float("inf") for zone in self.graph.zones.values()
         }
-        start_name = self.graph.start_zone.name
-        dist[start_name] = float("inf")
+        dist[
+            self.graph.start_zone.name
+        ] = float("inf")
+        dist[
+            self.graph.end_zone.name
+        ] = 0.0
 
-        end_name = self.graph.end_zone.name
-        dist[end_name] = 0.0
-
-        counter = 0
         open_list: List[Tuple[float, int, Zone]] = [
-            (0, counter, self.graph.end_zone)
+            (0, self.counter, self.graph.end_zone)
         ]
 
         while open_list:
-            distance, _, zone = heappop(open_list)
-
-            if distance > dist[zone.name]:
-                continue
+            item = min(open_list)
+            open_list.remove(item)
+            distance, _, zone = item
 
             if zone == self.graph.start_zone:
                 break
@@ -69,17 +64,15 @@ class PathFinder:
                 if neighbor.zone_type == ZoneTypes.BLOCKED:
                     continue
 
-                # INFO: calculate the movement cost into the neightbor zone
-                move_cost: float = float(neighbor.g)
-                # Priority zones are considered "closer" to
-                # the end to encourage routing through them
+                new_distance = distance + neighbor.g
+
                 if neighbor.zone_type == ZoneTypes.PRIORITY:
-                    move_cost -= 0.5
-                new_distance = distance + move_cost
+                    new_distance -= 0.5
                 if new_distance < dist[neighbor.name]:
-                    dist[neighbor.name] = new_distance
-                    counter += 1
-                    heappush(open_list, (new_distance, counter, neighbor))
+                    dist[neighbor.name] = float(new_distance)
+                    open_list.append((
+                        new_distance, next(self.counter), neighbor
+                    ))
 
         return dist
 
@@ -96,7 +89,7 @@ class PathFinder:
         The simulation continues until all drones have reached the end zone.
         Modifies drone paths and states in place.
         """
-        drones = list(self.graph.drones.values())
+        drones = self.graph.drones.values()
         turn = 0
 
         # Track drones currently in transit toward a restricted zone.
@@ -125,15 +118,7 @@ class PathFinder:
                 int, current_zone_count
             )
 
-            # Short drones from 1 to last
-            drones_sorted = sorted(
-                drones,
-                key=lambda d: self.shortest_dist.get(
-                    d.current_zone.name, float("inf")
-                )
-            )
-
-            for drone in drones_sorted:
+            for drone in drones:
                 if drone.finished:
                     moves.append((drone, drone.current_zone, False, None))
                     continue
