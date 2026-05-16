@@ -126,7 +126,6 @@ class Zone:
         self.color_name: str | tuple | None = color
         self.target_zone: List[Zone] = []
         self.target_zone_from_end: List[Zone] = []
-        self.contain_zones: int = 0
         self.g: int = self.get_cost(self.zone_type)
         self.h: float = float("inf")
         self.f: float = float("inf")
@@ -273,7 +272,6 @@ class Drone:
         self.target_zone: List[Zone] = target_zone
         self.current_x: float = current_zone.x
         self.current_y: float = current_zone.y
-        self.target_index = 0
         self.path: List[Tuple[int, str]] = [(0, current_zone.name)]
         self.finished: bool = False
 
