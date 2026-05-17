@@ -260,7 +260,7 @@ class PathFinder:
             bool: If there valid path return True,
                 otherwise return False
         """
-        valid = []
+        valid = False
         distance = self.shortest_dist.get(
             current_zone.name, float("inf")
         )
@@ -270,10 +270,8 @@ class PathFinder:
 
         for neighbor in current_zone.target_zone:
             if neighbor.zone_type != ZoneTypes.BLOCKED:
-                valid.append(neighbor.name)
-        if not valid:
-            return False
-        return True
+                valid = True
+        return valid
 
     def generate_output(self) -> None:
         """
