@@ -3,7 +3,7 @@
 """
 
 from typing import List, Tuple, Dict, cast
-from classes import Zone, ZoneTypes, Graph
+from classes import Zone, ZoneTypes, Graph, Drone
 from itertools import count
 from collections import defaultdict
 
@@ -24,22 +24,14 @@ class PathFinder:
             graph (Graph): The graph containing zones and connections.
         """
         self.graph: Graph = graph
-        self.counter: count[int] = count()
         self.shortest_dist: Dict[str, float] = self.__precompute_distances()
         # turn -> {'zones': {name: (current, max)},
         # 'connections': {name: (current, max)}}
         self.tracking: Dict[int, Dict[str, Dict[str, Tuple[int, int]]]] = {}
 
     def __precompute_distances(self) -> Dict[str, float]:
-        """
-        Precompute shortest distances from all zones to
-        the end zone to calculate heuristic distances for A*.
-
-        Returns:
-            Dict[str, float]: Dictionary mapping zone names to distances.
-        """
         dist: Dict[str, float] = {
-            zone.name: float("inf") for zone in self.graph.zones.values()
+            z.name: float("inf") for z in self.graph.zones.values()
         }
         dist[
             self.graph.start_zone.name
@@ -48,13 +40,15 @@ class PathFinder:
             self.graph.end_zone.name
         ] = 0.0
 
-        open_list: List[Tuple[float, int, Zone]] = [
-            (0, self.counter, self.graph.end_zone)
+        counter = 0
+        open_list: List[Tuple[
+            float, int, Zone
+        ]] = [
+            (0, counter, self.graph.end_zone)
         ]
 
         while open_list:
-            item = min(open_list)
-            open_list.remove(item)
+            item = self.pop_min(open_list)
             distance, _, zone = item
 
             if zone == self.graph.start_zone:
@@ -64,58 +58,40 @@ class PathFinder:
                 if neighbor.zone_type == ZoneTypes.BLOCKED:
                     continue
 
-                new_distance = distance + neighbor.g
-
+                new_distance = float(distance + zone.g)
                 if neighbor.zone_type == ZoneTypes.PRIORITY:
                     new_distance -= 0.5
+                
                 if new_distance < dist[neighbor.name]:
-                    dist[neighbor.name] = float(new_distance)
+                    dist[neighbor.name] = new_distance
+                    counter += 1
                     open_list.append((
-                        new_distance, next(self.counter), neighbor
+                        new_distance, counter, neighbor
                     ))
 
         return dist
 
     def a_star_search(self) -> None:
-        """
-        Simulate the movement of all drones using
-        a simplified A* search approach.
-
-        This method iterates through simulation turns, for each turn
-        deciding the best move or wait action for each unfinished
-        drone based on heuristic distances to the end zone.
-        It respects zone and link capacities, prioritizing drones closer
-        to the end and encouraging movement through priority zones.
-        The simulation continues until all drones have reached the end zone.
-        Modifies drone paths and states in place.
-        """
         drones = self.graph.drones.values()
         turn = 0
 
-        # Track drones currently in transit toward a restricted zone.
-        # {drone_id: (destination_zone, turns_left, connection_name)}
         in_transit: Dict[str, Tuple[Zone, int, str]] = {}
 
         while not all(drone.finished for drone in drones):
             turn += 1
 
-            # reset per-turn usage
-            edge_usage: Dict[Tuple[str, str], int] = defaultdict(int)
-            moves: List[Tuple] = []
-            edge: Tuple[str, str] = ("", "")
+            edge: Tuple[str, str] = ()
+            edge_usage: Dict[Tuple[str, str,], int] = defaultdict(int)
+            moves: List[Tuple[Drone, Zone, bool, str]] = []
 
-            # Count current occupancy excluding drones that
-            # are already in transit
-            current_zone_count: Dict[str, int] = defaultdict(int)
+            c_zone_counts: Dict[str, int] = defaultdict(int)
             for drone in drones:
                 if drone.finished or drone.id in in_transit:
                     continue
-                current_zone_count[drone.current_zone.name] += 1
+                c_zone_counts[drone.current_zone.name] += 1
 
-            # Future occupancy for next turn, including stays
-            # and accepted moves
-            zone_next_count: Dict[str, int] = defaultdict(
-                int, current_zone_count
+            n_zone_counts: Dict[str, int] = defaultdict(
+                int, c_zone_counts
             )
 
             for drone in drones:
@@ -123,130 +99,87 @@ class PathFinder:
                     moves.append((drone, drone.current_zone, False, None))
                     continue
 
-                # Drone currently in transit (restricted zone, turn 2)
                 if drone.id in in_transit:
-                    dest_zone, turns_left, conn_name = in_transit[drone.id]
-                    turns_left -= 1
+                    dest, turn_left, conn_name = in_transit[drone.id]
+                    turn_left -= 1
 
-                    edge = cast(
-                        Tuple[str, str],
-                        tuple((conn_name.split("-")))
+                    edge = tuple(
+                        conn_name.split("-")
                     )
                     edge_usage[edge] += 1
 
-                    if turns_left == 0:
-                        # Arrives at destination this turn
+                    if turn_left == 0:
+                        n_zone_counts[dest.name] += 1
                         del in_transit[drone.id]
-                        zone_next_count[dest_zone.name] += 1
-                        moves.append((drone, dest_zone, False, conn_name))
+                        moves.append((drone, dest, False, conn_name))
                     else:
-                        # Still in transit (shouldn't happen with g=2)
-                        # Kept for forward-compatibility with g > 2
                         in_transit[drone.id] = (
-                            dest_zone, turns_left, conn_name
+                            dest, turn_left, conn_name
                         )
                         moves.append((drone, None, True, conn_name))
 
                     continue
 
                 current = drone.current_zone
+                best_distance = float("inf")
                 best_neighbor = None
-                best_score = float("inf")
-                best_edge: Tuple[str, str] = ("", "")
+                best_edge = ()
 
                 for neighbor in current.target_zone:
                     if neighbor.zone_type == ZoneTypes.BLOCKED:
                         continue
 
+                    edge = (current.name, neighbor.name)
+
                     connection = self.graph.get_connection(
-                        f"{current.name}-{neighbor.name}"
+                        f"{edge[0]}-{edge[1]}"
                     )
 
-                    if not connection:
-                        continue
-
-                    edge = cast(
-                        Tuple[str, str],
-                        (current.name, neighbor.name)
-                    )
-
-                    # Link capacity check
                     if edge_usage[edge] >= connection.max_link_capacity:
                         continue
 
-                    # Zone capacity check (skip for end zone)
                     if neighbor != self.graph.end_zone:
-                        if neighbor.zone_type == ZoneTypes.RESTRICTED:
-                            # Destination zone will be occupied next turn.
-                            if (
-                                zone_next_count[neighbor.name] >=
-                                neighbor.max_drones
-                            ):
-                                continue
-                        elif (
-                            zone_next_count[neighbor.name] >=
-                            neighbor.max_drones
-                        ):
+                        if n_zone_counts[neighbor.name] >= neighbor.max_drones:
                             continue
-
-                    # Heuristic score
+                    
                     distance = self.shortest_dist.get(
                         neighbor.name, float("inf")
                     )
-
-                    # Priority bonus
-                    if distance < best_score:
-                        best_score = distance
+                    if distance < best_distance:
+                        best_distance = distance
                         best_neighbor = neighbor
                         best_edge = edge
 
                 # Apply move
                 if best_neighbor:
                     edge_usage[best_edge] += 1
+                    n_zone_counts[best_neighbor.name] += 1
 
-                    # if the drone leaves its current zone this turn,
-                    # decrement future count for the origin zone.
-                    if drone.current_zone.name != best_neighbor.name:
-                        zone_next_count[drone.current_zone.name] -= 1
+                    if current.name != best_neighbor.name:
+                        n_zone_counts[current.name] -= 1
 
                     if best_neighbor.zone_type == ZoneTypes.RESTRICTED:
-                        # Turn 1 of 2: drone enters the connection
-                        conn_name = f"{current.name}-{best_neighbor.name}"
-                        in_transit[drone.id] = (best_neighbor, 1, conn_name)
-                        moves.append((drone, None, True, conn_name))
-                        zone_next_count[best_neighbor.name] += 1
+                        conn_name = f"{best_edge[0]}-{best_edge[1]}"
+                        in_transit[drone.id] = (
+                            best_neighbor, 1, conn_name
+                        )
+                        moves.append((drone, best_neighbor, True, conn_name))
                     else:
-                        zone_next_count[best_neighbor.name] += 1
                         moves.append((drone, best_neighbor, False, None))
                 else:
-                    # Wait the current zone
-                    moves.append((drone, current, False, None))
+                    moves.append((drone, drone.current_zone, False, None))
 
-            # Apply moves
-            for drone, new_zone, is_in_transit, conn_name in moves:
-                if drone.finished:
-                    continue
+            for drone, dest, is_transit, conn in moves:
+                drone.current_zone = dest
 
-                if is_in_transit and conn_name:
-                    # Record the connection waypoint in path
-                    drone.path.append((turn, conn_name))
-
-                elif new_zone is not None:
-                    drone.current_zone = new_zone
-                    drone.path.append((turn, new_zone.name))
-
-                    if (
-                        new_zone != self.graph.end_zone
-                        and not self.is_valid_path(drone.current_zone)
-                    ):
-                        # Invalid state: drone didn't move but is
-                        # not waiting in the same zone
-                        raise ValueError(
-                            "Invalid path: found a path that " +
-                            "doesn't lead to the end zone."
-                        )
-
-                    if new_zone == self.graph.end_zone:
+                if is_transit and conn:
+                    drone.path.append((turn, conn))
+                elif dest:
+                    drone.path.append((turn, dest.name))
+                    if dest != self.graph.end_zone:
+                        if not self.is_valid_path(dest):
+                            raise ValueError("Invalid path")
+                    else:
                         drone.finished = True
 
     def is_valid_path(self, current_zone: Zone) -> bool:
@@ -272,6 +205,18 @@ class PathFinder:
             if neighbor.zone_type != ZoneTypes.BLOCKED:
                 valid = True
         return valid
+
+    def pop_min(
+            self, open_list: List[
+                Tuple[float, int, Zone]
+            ]
+        ) -> Tuple[
+            float, int, Zone
+        ]:
+            item = min(open_list)
+            open_list.remove(item)
+            return item
+
 
     def generate_output(self) -> None:
         """
