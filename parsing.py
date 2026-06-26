@@ -117,7 +117,7 @@ class FileParser:
                 if (ConfigKeyTypes.HUBS.value in line
                         or ConfigKeyTypes.START.value in line
                         or ConfigKeyTypes.END.value in line
-                        or "connection" in line):
+                        or ConfigKeyTypes.CONN.value in line):
 
                     type_hub = ""
                     is_match = None
@@ -314,7 +314,8 @@ class FileParser:
 
                 elif ConfigKeyTypes.NB.value not in line:
                     display_errors_msg(
-                        f"Line {num}: Unsupported line: {line}"
+                        f"Line {num}: Unsupported " +
+                        f"or invalid line: \"{line}\""
                     )
 
             if finding.get(ConfigKeyTypes.NB.value, 0) == 0:
