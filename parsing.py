@@ -89,8 +89,11 @@ class FileParser:
                 if line.startswith("#"):
                     continue
 
+                # Skip an empty line
                 if not line.strip():
                     continue
+
+                line = line.strip()
 
                 if is_first_line:
                     is_match = match(r"^nb_drones: [0-9]+$", line)
