@@ -213,6 +213,9 @@ class VisualizeSimulation:
                 zone.color if zone.color else THECOLORS.get("white")
             )
 
+            if zone.color_name is None:
+                zone.color_name = "white"
+
             if (
                 isinstance(zone.color_name, str)
                 and zone.color_name.lower() != "rainbow"
