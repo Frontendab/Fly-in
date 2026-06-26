@@ -73,13 +73,13 @@ class PathFinder:
                     ))
 
         return dist
-    
+
     def pop_min(
-            self,
-            open_list: List[
-                Tuple[float, int, Zone]
-            ]
-        ) -> Tuple[float, int, Zone]:
+        self,
+        open_list: List[
+            Tuple[float, int, Zone]
+        ]
+    ) -> Tuple[float, int, Zone]:
         item = min(open_list)
         open_list.remove(item)
 
@@ -139,7 +139,7 @@ class PathFinder:
 
                     edge = cast(
                         Tuple[str, str],
-                        tuple((conn_name.split("-")))
+                        tuple(conn_name.split("-"))
                     )
                     edge_usage[edge] += 1
 
@@ -167,17 +167,14 @@ class PathFinder:
                     if neighbor.zone_type == ZoneTypes.BLOCKED:
                         continue
 
+                    edge = (current.name, neighbor.name)
+
                     connection = self.graph.get_connection(
-                        f"{current.name}-{neighbor.name}"
+                        f"{edge[0]}-{edge[1]}"
                     )
 
                     if not connection:
                         continue
-
-                    edge = cast(
-                        Tuple[str, str],
-                        (current.name, neighbor.name)
-                    )
 
                     # Link capacity check
                     if edge_usage[edge] >= connection.max_link_capacity:
@@ -185,14 +182,7 @@ class PathFinder:
 
                     # Zone capacity check (skip for end zone)
                     if neighbor != self.graph.end_zone:
-                        if neighbor.zone_type == ZoneTypes.RESTRICTED:
-                            # Destination zone will be occupied next turn.
-                            if (
-                                zone_next_count[neighbor.name] >=
-                                neighbor.max_drones
-                            ):
-                                continue
-                        elif (
+                        if (
                             zone_next_count[neighbor.name] >=
                             neighbor.max_drones
                         ):
@@ -212,20 +202,19 @@ class PathFinder:
                 # Apply move
                 if best_neighbor:
                     edge_usage[best_edge] += 1
+                    zone_next_count[best_neighbor.name] += 1
 
                     # if the drone leaves its current zone this turn,
                     # decrement future count for the origin zone.
-                    if drone.current_zone.name != best_neighbor.name:
-                        zone_next_count[drone.current_zone.name] -= 1
+                    if current.name != best_neighbor.name:
+                        zone_next_count[current.name] -= 1
 
                     if best_neighbor.zone_type == ZoneTypes.RESTRICTED:
                         # Turn 1 of 2: drone enters the connection
                         conn_name = f"{current.name}-{best_neighbor.name}"
                         in_transit[drone.id] = (best_neighbor, 1, conn_name)
                         moves.append((drone, None, True, conn_name))
-                        zone_next_count[best_neighbor.name] += 1
                     else:
-                        zone_next_count[best_neighbor.name] += 1
                         moves.append((drone, best_neighbor, False, None))
                 else:
                     # Wait the current zone

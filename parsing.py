@@ -302,11 +302,13 @@ class FileParser:
                             )
                         if not self.is_exist_zone(name_a):
                             display_errors_msg(
-                                f"Line {num}: The zone \"{name_a}\" doesn't exist!"
+                                f"Line {num}: The zone \"{name_a}\" " +
+                                "doesn't exist!"
                             )
                         if not self.is_exist_zone(name_b):
                             display_errors_msg(
-                                f"Line {num}: The zone \"{name_b}\" doesn't exist!"
+                                f"Line {num}: The zone \"{name_b}\" " +
+                                "doesn't exist!"
                             )
                         self.connections.append(connection)
 
