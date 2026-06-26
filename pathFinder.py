@@ -4,7 +4,6 @@
 
 from typing import List, Tuple, Dict, cast
 from classes import Zone, ZoneTypes, Graph
-from itertools import count
 from collections import defaultdict
 
 
@@ -24,7 +23,6 @@ class PathFinder:
             graph (Graph): The graph containing zones and connections.
         """
         self.graph: Graph = graph
-        self.counter: count[int] = count()
         self.shortest_dist: Dict[str, float] = self.__precompute_distances()
         # turn -> {'zones': {name: (current, max)},
         # 'connections': {name: (current, max)}}
@@ -48,14 +46,13 @@ class PathFinder:
             self.graph.end_zone.name
         ] = 0.0
 
+        counter = 0
         open_list: List[Tuple[float, int, Zone]] = [
-            (0, self.counter, self.graph.end_zone)
+            (0, counter, self.graph.end_zone)
         ]
 
         while open_list:
-            item = min(open_list)
-            open_list.remove(item)
-            distance, _, zone = item
+            distance, _, zone = self.pop_min(open_list)
 
             if zone == self.graph.start_zone:
                 break
@@ -70,11 +67,23 @@ class PathFinder:
                     new_distance -= 0.5
                 if new_distance < dist[neighbor.name]:
                     dist[neighbor.name] = float(new_distance)
+                    counter += 1
                     open_list.append((
-                        new_distance, next(self.counter), neighbor
+                        new_distance, counter, neighbor
                     ))
 
         return dist
+    
+    def pop_min(
+            self,
+            open_list: List[
+                Tuple[float, int, Zone]
+            ]
+        ) -> Tuple[float, int, Zone]:
+        item = min(open_list)
+        open_list.remove(item)
+
+        return item
 
     def a_star_search(self) -> None:
         """
