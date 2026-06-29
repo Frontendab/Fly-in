@@ -160,7 +160,7 @@ class PathFinder:
 
                 current = drone.current_zone
                 best_neighbor = None
-                best_score = float("inf")
+                best_distance = float("inf")
                 best_edge: Tuple[str, str] = ("", "")
 
                 for neighbor in current.target_zone:
@@ -194,8 +194,8 @@ class PathFinder:
                     )
 
                     # Priority bonus
-                    if distance < best_score:
-                        best_score = distance
+                    if distance < best_distance:
+                        best_distance = distance
                         best_neighbor = neighbor
                         best_edge = edge
 
